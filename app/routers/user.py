@@ -11,9 +11,9 @@ mongo_db = AsyncMongoClient(settings.MONGODB_URL)
 
 
 def decode_user_token(
-        signup_details: Annotated[str, Cookie()],
+        user_token: Annotated[str, Cookie()],
 ):
-    return decode_jwt(signup_details)
+    return decode_jwt(user_token)
 
 
 @router.get("/me", summary="Gets registered user details from database")
