@@ -1,0 +1,7 @@
+pydantic==2.7.0
+pydantic-settings==2.2.1
+fastapi==0.110.2
+uvicorn[standard]==0.29.1
+python-jose[cryptography]==3.3.0
+motor==4.6.3
+pymongo==3.4.0
