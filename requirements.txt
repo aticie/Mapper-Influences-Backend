@@ -1,7 +1,8 @@
 pydantic==2.7.0
 pydantic-settings==2.2.1
 fastapi==0.110.2
-uvicorn[standard]==0.29.1
+uvicorn[standard]==0.29.0
 python-jose[cryptography]==3.3.0
-motor==4.6.3
-pymongo==3.4.0
+motor==3.4.0
+pymongo==4.6.3
+aiohttp==3.9.5
