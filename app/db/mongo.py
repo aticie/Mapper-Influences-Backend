@@ -54,3 +54,7 @@ class AsyncMongoClient(AsyncIOMotorClient):
         }
         await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
         return db_user
+
+    async def get_leaderboard(self):
+        
+        pass

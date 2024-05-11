@@ -1,5 +1,6 @@
 from typing import Optional
 
+import logging
 import aiohttp
 from fastapi import APIRouter
 from fastapi.responses import RedirectResponse
@@ -7,6 +8,8 @@ from fastapi.responses import RedirectResponse
 from app.config import settings
 from app.db.mongo import AsyncMongoClient
 from app.utils.jwt import obtain_jwt
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/oauth", tags=["oauth"])
 mongo_db = AsyncMongoClient(settings.MONGODB_URL)
@@ -21,7 +24,8 @@ async def osu_oauth2_redirect(
     user = await get_osu_user(access_token["access_token"])
     db_user = await mongo_db.create_user(user_details=user)
     jwt_token = obtain_jwt(db_user)
-    redirect_response.set_cookie(key="user_token", value=jwt_token, httponly=True)
+    redirect_response.set_cookie(
+        key="user_token", value=jwt_token, httponly=True)
 
     return redirect_response
 
