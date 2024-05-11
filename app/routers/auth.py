@@ -19,7 +19,7 @@ mongo_db = AsyncMongoClient(settings.MONGODB_URL)
 async def osu_oauth2_redirect(
         code: str
 ):
-    redirect_response = RedirectResponse("http://localhost:8000/docs")
+    redirect_response = RedirectResponse(settings.POST_LOGIN_REDIRECT_URI)
     access_token = await get_osu_auth_token(code=code)
     user = await get_osu_user(access_token["access_token"])
     db_user = await mongo_db.create_user(user_details=user)

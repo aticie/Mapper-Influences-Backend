@@ -22,6 +22,7 @@ services:
       OSU_REDIRECT_URI: ${OSU_REDIRECT_URI}
       MONGODB_URL: ${MONGODB_URL}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      POST_LOGIN_REDIRECT_URI: ${POST_LOGIN_REDIRECT_URI}
 
     network_mode: "bridge"
     build: .
