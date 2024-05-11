@@ -1,5 +1,6 @@
 from typing import Optional
 
+import logging
 import aiohttp
 from fastapi import APIRouter
 from fastapi.responses import RedirectResponse
@@ -7,6 +8,8 @@ from fastapi.responses import RedirectResponse
 from app.config import settings
 from app.db.mongo import AsyncMongoClient
 from app.utils.jwt import obtain_jwt
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/oauth", tags=["oauth"])
 mongo_db = AsyncMongoClient(settings.MONGODB_URL)

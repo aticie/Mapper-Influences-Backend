@@ -46,11 +46,41 @@ class AsyncMongoClient(AsyncIOMotorClient):
         assert "avatar_url" in user_details
         assert "id" in user_details
         assert "username" in user_details
+        assert "country" in user_details
 
         db_user = {
             "id": user_details["id"],
             "avatar_url": user_details["avatar_url"],
-            "username": user_details["username"]
+            "username": user_details["username"],
+            "country": user_details["country"]["code"],
         }
         await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
         return db_user
+
+    async def get_leaderboard(self):
+        return await self.influences_collection.aggregate([
+            {"$lookup": {
+                "from": "Users",
+                "localField": "influenced_to",
+                "foreignField": "id",
+                "as": "user"
+            }},
+            {"$unwind": "$user"},
+            {"$group": {
+                "_id": "$influenced_to",
+                "user_id": {"$first": "$user.id"},
+                "username": {"$first": "$user.username"},
+                "avatar_url": {"$first": "$user.avatar_url"},
+                "country": {"$first": "$user.country"},
+                "influence_count": {"$sum": 1}
+            }},
+            {"$sort": {"count": -1}},
+            {"$project": {
+                "_id": 0,
+                "id": "$user_id",
+                "username": 1,
+                "avatar_url": 1,
+                "influence_count": 1,
+                "country": 1
+            }}
+        ]).to_list(length=None)
