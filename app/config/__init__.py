@@ -9,6 +9,7 @@ class APISettings(BaseSettings):
     OSU_CLIENT_ID: str
     OSU_CLIENT_SECRET: str
     OSU_REDIRECT_URI: str
+    POST_LOGIN_REDIRECT_URI: str
 
 
 class AuthSettings(BaseSettings):
