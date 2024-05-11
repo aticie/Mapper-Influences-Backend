@@ -11,7 +11,6 @@ router = APIRouter(prefix="/leaderboard", tags=["leaderboard"])
 mongo_db = AsyncMongoClient(settings.MONGODB_URL)
 
 
-@router.post("/", summary="get top users which are influenced by others")
+@router.get("/", summary="get top users which are influenced by others")
 async def add_influence():
-    await mongo_db.get_leaderboard()
-    return
+    return await mongo_db.get_leaderboard()

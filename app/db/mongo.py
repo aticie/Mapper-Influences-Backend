@@ -56,5 +56,27 @@ class AsyncMongoClient(AsyncIOMotorClient):
         return db_user
 
     async def get_leaderboard(self):
-        
-        pass
+        return await self.influences_collection.aggregate([
+            {"$lookup": {
+                "from": "Users",
+                "localField": "influenced_to",
+                "foreignField": "id",
+                "as": "user"
+            }},
+            {"$unwind": "$user"},
+            {"$group": {
+                "_id": "$influenced_to",
+                "user_id": {"$first": "$user.id"},
+                "username": {"$first": "$user.username"},
+                "avatar_url": {"$first": "$user.avatar_url"},
+                "count": {"$sum": 1}
+            }},
+            {"$sort": {"count": -1}},
+            {"$project": {
+                "_id": 0,
+                "id": "$user_id",
+                "username": 1,
+                "avatar_url": 1,
+                "count": 1
+            }}
+        ]).to_list(length=None)
