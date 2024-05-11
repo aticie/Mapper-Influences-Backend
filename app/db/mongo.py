@@ -46,11 +46,13 @@ class AsyncMongoClient(AsyncIOMotorClient):
         assert "avatar_url" in user_details
         assert "id" in user_details
         assert "username" in user_details
+        assert "country" in user_details
 
         db_user = {
             "id": user_details["id"],
             "avatar_url": user_details["avatar_url"],
-            "username": user_details["username"]
+            "username": user_details["username"],
+            "country": user_details["country"]["code"],
         }
         await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
         return db_user
@@ -69,7 +71,8 @@ class AsyncMongoClient(AsyncIOMotorClient):
                 "user_id": {"$first": "$user.id"},
                 "username": {"$first": "$user.username"},
                 "avatar_url": {"$first": "$user.avatar_url"},
-                "count": {"$sum": 1}
+                "country": {"$first": "$user.country"},
+                "influence_count": {"$sum": 1}
             }},
             {"$sort": {"count": -1}},
             {"$project": {
@@ -77,6 +80,7 @@ class AsyncMongoClient(AsyncIOMotorClient):
                 "id": "$user_id",
                 "username": 1,
                 "avatar_url": 1,
-                "count": 1
+                "influence_count": 1,
+                "country": 1
             }}
         ]).to_list(length=None)
