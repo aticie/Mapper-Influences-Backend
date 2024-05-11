@@ -23,6 +23,17 @@ class Influence(BaseModel):
     beatmaps: Optional[Beatmap] = None
 
 
+class User(BaseModel):
+    id: int
+    username: str
+    avatar_url: str
+
+
+class LeaderboardUser(User):
+    influence_count: int
+    country: str
+
+
 class AsyncMongoClient(AsyncIOMotorClient):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -74,7 +85,8 @@ class AsyncMongoClient(AsyncIOMotorClient):
                 "country": {"$first": "$user.country"},
                 "influence_count": {"$sum": 1}
             }},
-            {"$sort": {"count": -1}},
+            {"$sort": {"influence_count": -1}},
+            {"$limit": 25},
             {"$project": {
                 "_id": 0,
                 "id": "$user_id",
