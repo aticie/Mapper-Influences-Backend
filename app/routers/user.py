@@ -4,7 +4,7 @@ from fastapi import APIRouter, Cookie, Depends
 from pydantic import BaseModel
 
 from app.config import settings
-from app.db.mongo import AsyncMongoClient, User
+from app.db.mongo import AsyncMongoClient
 from app.utils.jwt import decode_jwt
 
 router = APIRouter(prefix="/users", tags=["users"])
