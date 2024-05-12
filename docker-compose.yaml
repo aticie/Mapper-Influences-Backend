@@ -1,4 +1,3 @@
-# Use root/example as user/password credentials
 version: "3.1"
 
 services:
@@ -6,23 +5,25 @@ services:
     image: mongo
     restart: always
     ports:
-      - 27017:27017
+      - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
 
   backend:
-    image: mapper-influences # Change this to your backend image
+    build: .
+    image: mapper-influences # Make sure this matches your actual Docker image name
     restart: always
     ports:
-      - 8000:8080
+      - "8000:8080"
+    depends_on:
+      - mongo
+    env_file:
+      - .env
     environment:
       OSU_CLIENT_ID: ${OSU_CLIENT_ID}
       OSU_CLIENT_SECRET: ${OSU_CLIENT_SECRET}
       OSU_REDIRECT_URI: ${OSU_REDIRECT_URI}
-      MONGODB_URL: ${MONGODB_URL}
+      MONGODB_URL: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       POST_LOGIN_REDIRECT_URI: ${POST_LOGIN_REDIRECT_URI}
-
-    network_mode: "bridge"
-    build: .
