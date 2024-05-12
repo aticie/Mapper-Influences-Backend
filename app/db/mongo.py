@@ -23,17 +23,6 @@ class Influence(BaseModel):
     beatmaps: Optional[Beatmap] = None
 
 
-class User(BaseModel):
-    id: int
-    username: str
-    avatar_url: str
-
-
-class LeaderboardUser(User):
-    influence_count: int
-    country: str
-
-
 class AsyncMongoClient(AsyncIOMotorClient):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

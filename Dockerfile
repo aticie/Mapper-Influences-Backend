@@ -22,8 +22,8 @@ RUN addgroup --system nonroot \
 
 USER nonroot
 
-# Set the port (need to be dynamic for Railway)
-ARG PORT=8080
+# Read and set the port (needs to be dynamic for Railway)
+ARG PORT=8000
 ENV PORT=${PORT}
 
 CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
