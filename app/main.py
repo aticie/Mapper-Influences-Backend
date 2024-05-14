@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await start_mongo_client(settings.MONGODB_URL)
+    start_mongo_client(settings.MONGODB_URL)
     yield
     close_mongo_client()
 

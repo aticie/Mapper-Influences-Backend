@@ -102,15 +102,15 @@ class AsyncMongoClient(AsyncIOMotorClient):
 mongo_client: AsyncMongoClient = None
 
 
-async def start_mongo_client(mongo_url: str):
+def start_mongo_client(mongo_url: str):
     global mongo_client
     mongo_client = AsyncMongoClient(mongo_url)
 
 
-async def close_mongo_client():
+def close_mongo_client():
     if mongo_client is not None:
         mongo_client.close()
 
 
-async def get_mongo_db() -> AsyncIOMotorClient:
+def get_mongo_db() -> AsyncIOMotorClient:
     return mongo_client
