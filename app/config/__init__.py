@@ -15,6 +15,7 @@ class APISettings(BaseSettings):
 class AuthSettings(BaseSettings):
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_SECRET_KEY: str
 
 
 class Settings(

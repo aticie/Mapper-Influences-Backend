@@ -1,5 +1,4 @@
 from typing import Annotated, Optional
-
 from fastapi import APIRouter, Cookie, Depends
 from pydantic import BaseModel
 
@@ -17,10 +16,12 @@ class InfluenceRequest(BaseModel):
     description: Optional[str] = None
     beatmaps: Optional[Beatmap] = None
 
+
 def decode_user_token(
         user_token: Annotated[str, Cookie()],
 ):
     return decode_jwt(user_token)
+
 
 @router.post("/", summary="Adds an influence.")
 async def add_influence(

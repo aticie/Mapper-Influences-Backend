@@ -1,7 +1,4 @@
-from typing import Annotated, Optional
-
 from fastapi import APIRouter, Cookie, Depends
-from pydantic import BaseModel
 
 from app.config import settings
 from app.db.mongo import AsyncMongoClient, LeaderboardUser
