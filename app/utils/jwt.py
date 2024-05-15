@@ -18,7 +18,6 @@ def obtain_jwt(data: dict, expires_delta: Optional[timedelta] = None):
     else:
         expire = datetime.utcnow() + timedelta(days=JWT_EXPIRE_DAYS)
     to_encode.update({"exp": expire})
-    print(to_encode)
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
