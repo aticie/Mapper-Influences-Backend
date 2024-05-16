@@ -28,7 +28,7 @@ async def osu_oauth2_redirect(
     jwt_token = obtain_jwt(db_user, expires_delta=timedelta(
         seconds=access_token["expires_in"]))
     redirect_response.set_cookie(
-        key="user_token", value=jwt_token, httponly=True, max_age=access_token["expires_in"])
+        key="user_token", value=jwt_token, max_age=access_token["expires_in"])
 
     return redirect_response
 
