@@ -1,5 +1,4 @@
 from typing import Annotated, Optional
-
 from fastapi import APIRouter, Cookie, Depends
 from pydantic import BaseModel
 

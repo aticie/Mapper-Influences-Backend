@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Union, Any, Optional
+from typing import Any, Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
@@ -27,6 +27,7 @@ class User(BaseModel):
     id: int
     username: str
     avatar_url: str
+    bio: Optional[str] = None
 
 
 class LeaderboardUser(User):
@@ -41,9 +42,9 @@ class AsyncMongoClient(AsyncIOMotorClient):
         self.users_collection = self.main_db.get_collection("Users")
         self.influences_collection = self.main_db.get_collection("Influences")
 
-    async def get_user_details(self, user_id: Union[str, int]):
+    async def get_user_details(self, user_id: id):
         logger.debug(f"Getting user influences of {user_id}")
-        return await self.main_db.find({"userId": user_id}).to_list(length=None)
+        return await self.users_collection.find_one({"id": user_id}, {"_id": False})
 
     async def add_user_influence(self, influence: Influence):
         logger.debug(f"Adding influence: {influence}")
@@ -67,6 +68,9 @@ class AsyncMongoClient(AsyncIOMotorClient):
         }
         await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
         return db_user
+
+    async def update_user_bio(self, user: id, bio: str):
+        await self.users_collection.update_one({"id": user}, {"$set": {"bio": bio}}, upsert=True)
 
     async def get_leaderboard(self):
         return await self.influences_collection.aggregate([

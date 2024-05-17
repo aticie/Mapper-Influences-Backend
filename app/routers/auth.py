@@ -1,5 +1,4 @@
-from typing import Optional
-
+from datetime import timedelta
 import logging
 import aiohttp
 from fastapi import APIRouter, Depends
@@ -23,9 +22,11 @@ async def osu_oauth2_redirect(
     access_token = await get_osu_auth_token(code=code)
     user = await get_osu_user(access_token["access_token"])
     db_user = await mongo_db.create_user(user_details=user)
-    jwt_token = obtain_jwt(db_user)
+    db_user["access_token"] = access_token["access_token"]
+    jwt_token = obtain_jwt(
+        db_user, expires_delta=timedelta(seconds=access_token["expires_in"]))
     redirect_response.set_cookie(
-        key="user_token", value=jwt_token, httponly=True)
+        key="user_token", value=jwt_token, httponly=True, max_age=access_token["expires_in"])
 
     return redirect_response
 
