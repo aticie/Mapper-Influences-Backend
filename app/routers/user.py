@@ -1,6 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 from app.config import settings
 from app.db.mongo import AsyncMongoClient, User
@@ -10,8 +11,23 @@ router = APIRouter(prefix="/users", tags=["users"])
 mongo_db = AsyncMongoClient(settings.MONGODB_URL)
 
 
-@router.get("/me", summary="Gets registered user details from database", response_model=User)
+class Bio(BaseModel):
+    bio: str
+
+
+@router.get("/me", summary="Gets registered user details from database")
 async def get_user_details(
         user: Annotated[dict, Depends(decode_user_token)]
 ):
-    return user
+    result = await mongo_db.get_user_details(user["id"])
+    if result is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return result
+
+
+@router.post("/bio", summary="Updates user bio")
+async def update_user_bio(
+        user: Annotated[dict, Depends(decode_user_token)],
+        bio: Bio
+):
+    return await mongo_db.update_user_bio(user["id"], bio.bio)
