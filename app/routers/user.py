@@ -15,7 +15,7 @@ class Bio(BaseModel):
     bio: str
 
 
-@router.get("/me", summary="Gets registered user details from database")
+@router.get("/me", response_model=User, summary="Gets registered user details from database")
 async def get_user_details(
         user: Annotated[dict, Depends(decode_user_token)]
 ):
@@ -25,7 +25,7 @@ async def get_user_details(
     return result
 
 
-@router.get("/{user_id}", summary="Gets user details from database")
+@router.get("/{user_id}", response_model=User, summary="Gets user details from database")
 async def get_user_by_id(
         _: Annotated[dict, Depends(decode_user_token)],
         user_id: int
