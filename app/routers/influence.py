@@ -3,11 +3,10 @@ from fastapi import APIRouter, Cookie, Depends
 from pydantic import BaseModel
 
 from app.config import settings
-from app.db.mongo import AsyncMongoClient, Beatmap, Influence
+from app.db.mongo import AsyncMongoClient, Beatmap, Influence, get_mongo_db
 from app.utils.jwt import decode_jwt
 
 router = APIRouter(prefix="/influence", tags=["influence"])
-mongo_db = AsyncMongoClient(settings.MONGODB_URL)
 
 
 class InfluenceRequest(BaseModel):
@@ -26,7 +25,8 @@ def decode_user_token(
 @router.post("/", summary="Adds an influence.")
 async def add_influence(
         influence_request: InfluenceRequest,
-        user: Annotated[dict, Depends(decode_user_token)]
+        user: Annotated[dict, Depends(decode_user_token)],
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
     influence = Influence(
         influenced_by=user["id"],

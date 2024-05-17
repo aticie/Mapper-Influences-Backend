@@ -1,23 +1,23 @@
 from datetime import timedelta
 import logging
 import aiohttp
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import RedirectResponse
 
 from app.config import settings
-from app.db.mongo import AsyncMongoClient
+from app.db.mongo import AsyncMongoClient, get_mongo_db
 from app.utils.jwt import obtain_jwt
 from app.utils.encryption import encrypt_string
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/oauth", tags=["oauth"])
-mongo_db = AsyncMongoClient(settings.MONGODB_URL)
 
 
 @router.get("/osu-redirect", summary="Handles OAuth redirect from osu!.")
 async def osu_oauth2_redirect(
-        code: str
+        code: str,
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
     redirect_response = RedirectResponse(settings.POST_LOGIN_REDIRECT_URI)
     access_token = await get_osu_auth_token(code=code)

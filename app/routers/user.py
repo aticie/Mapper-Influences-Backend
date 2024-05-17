@@ -8,7 +8,6 @@ from app.db.mongo import AsyncMongoClient, User
 from app.utils.jwt import decode_jwt, decode_user_token
 
 router = APIRouter(prefix="/users", tags=["users"])
-mongo_db = AsyncMongoClient(settings.MONGODB_URL)
 
 
 class Bio(BaseModel):

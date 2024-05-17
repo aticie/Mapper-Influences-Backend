@@ -100,3 +100,21 @@ class AsyncMongoClient(AsyncIOMotorClient):
                 "country": 1
             }}
         ]).to_list(length=None)
+
+
+# singleton mongo client
+mongo_client: AsyncMongoClient = None
+
+
+def start_mongo_client(mongo_url: str):
+    global mongo_client
+    mongo_client = AsyncMongoClient(mongo_url)
+
+
+def close_mongo_client():
+    if mongo_client is not None:
+        mongo_client.close()
+
+
+def get_mongo_db() -> AsyncIOMotorClient:
+    return mongo_client
