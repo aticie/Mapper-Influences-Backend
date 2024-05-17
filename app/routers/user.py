@@ -25,9 +25,20 @@ async def get_user_details(
     return result
 
 
-@router.post("/bio", summary="Updates user bio")
+@router.get("/{user_id}", summary="Gets user details from database")
+async def get_user_by_id(
+        _: Annotated[dict, Depends(decode_user_token)],
+        user_id: int
+):
+    result = await mongo_db.get_user_details(user_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return result
+
+
+@ router.post("/bio", summary="Updates user bio")
 async def update_user_bio(
-        user: Annotated[dict, Depends(decode_user_token)],
-        bio: Bio
+    user: Annotated[dict, Depends(decode_user_token)],
+    bio: Bio
 ):
     return await mongo_db.update_user_bio(user["id"], bio.bio)
