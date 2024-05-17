@@ -36,6 +36,15 @@ async def get_user_beatmap(
     return await get_user_beatmap(access_token, beatmap_id, type)
 
 
+@router.get("/search/{query}", summary="search users using osu api")
+async def search(
+    query: str,
+    user: Annotated[dict, Depends(decode_user_token)],
+):
+    access_token = decrypt_string(user["access_token"])
+    return await search(access_token, query)
+
+
 async def get_beatmap(access_token: str, beatmap_id: int):
     beatmap_url = f"https://osu.ppy.sh/api/v2/beatmaps/{beatmap_id}"
     auth_header = {"Authorization": f"Bearer {access_token}"}
@@ -58,4 +67,12 @@ async def get_user_beatmaps(access_token: str, user_id: int, type: str):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(user_maps_url) as response:
+            return await response.json()
+
+
+async def search(access_token: str, query: str):
+    search_url = f"https://osu.ppy.sh/api/v2/search/?mode=user&query={query}"
+    auth_header = {"Authorization": f"Bearer {access_token}"}
+    async with aiohttp.ClientSession(headers=auth_header) as session:
+        async with session.get(search_url, params={"q": query}) as response:
             return await response.json()
