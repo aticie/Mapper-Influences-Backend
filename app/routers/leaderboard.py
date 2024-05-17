@@ -1,12 +1,12 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from app.config import settings
-from app.db.mongo import AsyncMongoClient, LeaderboardUser
+from app.db.mongo import AsyncMongoClient, LeaderboardUser, get_mongo_db
 
 router = APIRouter(prefix="/leaderboard", tags=["leaderboard"])
-mongo_db = AsyncMongoClient(settings.MONGODB_URL)
 
 
 @router.get("/", summary="get top users which are influenced by others", response_model=list[LeaderboardUser])
-async def get_leaderboard():
+async def get_leaderboard(
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+):
     return await mongo_db.get_leaderboard()
