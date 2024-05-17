@@ -42,7 +42,8 @@ async def search(
     user: Annotated[dict, Depends(decode_user_token)],
 ):
     access_token = decrypt_string(user["access_token"])
-    return await search(access_token, query)
+    response_body = await search(access_token, query)
+    return response_body["user"]["data"]
 
 
 async def get_beatmap(access_token: str, beatmap_id: int):
