@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from app.config import settings
 from app.db.mongo import AsyncMongoClient, User
-from app.utils.jwt import decode_jwt, decode_user_token
+from app.utils.jwt import decode_user_token
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -35,9 +35,9 @@ async def get_user_by_id(
     return result
 
 
-@ router.post("/bio", summary="Updates user bio")
+@router.post("/bio", summary="Updates user bio")
 async def update_user_bio(
-    user: Annotated[dict, Depends(decode_user_token)],
-    bio: Bio
+        user: Annotated[dict, Depends(decode_user_token)],
+        bio: Bio
 ):
     return await mongo_db.update_user_bio(user["id"], bio.bio)

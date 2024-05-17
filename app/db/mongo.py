@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Union, Any, Optional
+from typing import Any, Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
