@@ -27,7 +27,7 @@ class User(BaseModel):
     id: int
     username: str
     avatar_url: str
-    have_ranked_map: bool
+    have_ranked_map: Optional[bool]
     bio: Optional[str] = None
     beatmaps: Optional[list[Beatmap]] = None
 
