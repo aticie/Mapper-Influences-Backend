@@ -55,10 +55,18 @@ async def add_beatmap_to_user(
     await mongo_db.add_beatmap_to_user(user["id"], beatmap)
 
 
-@router.post("/remove_beatmap", summary="Remove beatmap from user")
+@router.delete("/remove_beatmap/{type}/{id}", summary="Remove beatmap from user, type can be 'set' or 'diff'")
 async def remove_beatmap_from_user(
         user: Annotated[dict, Depends(decode_user_token)],
-        beatmap: Beatmap,
+        type: str,
+        id: int,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
-    await mongo_db.remove_beatmap_from_user(user["id"], beatmap)
+
+    if type == "set":
+        is_beatmapset = True
+    elif type == "diff":
+        is_beatmapset = False
+    else:
+        raise HTTPException(status_code=400, detail="Invalid type")
+    await mongo_db.remove_beatmap_from_user(user["id"], id, is_beatmapset)

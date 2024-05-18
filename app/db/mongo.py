@@ -27,7 +27,7 @@ class User(BaseModel):
     id: int
     username: str
     avatar_url: str
-    have_ranked_map: Optional[bool]
+    have_ranked_map: bool = False
     bio: Optional[str] = None
     beatmaps: Optional[list[Beatmap]] = None
 
@@ -85,7 +85,8 @@ class AsyncMongoClient(AsyncIOMotorClient):
     async def add_beatmap_to_user(self, user_id: int, beatmap: Beatmap):
         await self.users_collection.update_one({"id": user_id}, {"$push": {"beatmaps": beatmap.model_dump()}}, upsert=True)
 
-    async def remove_beatmap_from_user(self, user_id: int, beatmap: Beatmap):
+    async def remove_beatmap_from_user(self, user_id: int, beatmap_id: int, is_beatmapset: bool):
+        beatmap = Beatmap(is_beatmapset=is_beatmapset, id=beatmap_id)
         await self.users_collection.update_one(
             {"id": user_id},
             {"$pull": {"beatmaps": beatmap.model_dump()}}
