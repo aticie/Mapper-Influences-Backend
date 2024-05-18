@@ -1,7 +1,7 @@
 from datetime import timedelta
 import logging
 import aiohttp
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from fastapi.responses import RedirectResponse
 
 from app.config import settings
@@ -29,6 +29,12 @@ async def osu_oauth2_redirect(
         key="user_token", value=jwt_token, httponly=True, max_age=access_token["expires_in"])
 
     return redirect_response
+
+
+@router.get("/logout", summary="Logs out the user. (basically removes the cookie)")
+async def logout(response: Response):
+    response.delete_cookie("user_token")
+    return response
 
 
 async def get_osu_user(access_token: str):
