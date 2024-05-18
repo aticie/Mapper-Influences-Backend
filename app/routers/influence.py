@@ -46,7 +46,7 @@ async def get_influences(
     return await mongo_db.get_influences(user_id)
 
 
-@router.delete("/remove_influence/{infuenced_to}", summary="Remove influence")
+@router.delete("/remove_influence/{influenced_to}", summary="Remove influence")
 async def remove_influence(
         user: Annotated[dict, Depends(decode_user_token)],
         influenced_to: int,
