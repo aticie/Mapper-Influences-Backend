@@ -56,6 +56,10 @@ class AsyncMongoClient(AsyncIOMotorClient):
             {"$set": influence.model_dump()},
             upsert=True)
 
+    async def remove_user_influence(self, influenced_by: int, influenced_to: int):
+        logger.debug(f"Removing influence: {influenced_by} -> {influenced_to}")
+        return await self.influences_collection.delete_one({"influenced_by": influenced_by, "influenced_to": influenced_to})
+
     async def create_user(self, user_details: dict[str, Any]):
         assert "avatar_url" in user_details
         assert "id" in user_details
@@ -70,6 +74,10 @@ class AsyncMongoClient(AsyncIOMotorClient):
         }
         await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
         return db_user
+
+    async def get_influences(self, user_id: int):
+        logger.debug(f"Getting user influences of {user_id}")
+        return await self.influences_collection.find({"influenced_by": user_id}, {"_id": False}).to_list(length=None)
 
     async def update_user_bio(self, user_id: int, bio: str):
         await self.users_collection.update_one({"id": user_id}, {"$set": {"bio": bio}}, upsert=True)
