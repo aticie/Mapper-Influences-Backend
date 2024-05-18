@@ -22,7 +22,7 @@ def decode_user_token(
     return decode_jwt(user_token)
 
 
-@router.post("/", summary="Adds an influence.")
+@router.post("", summary="Adds an influence.")
 async def add_influence(
         influence_request: InfluenceRequest,
         user: Annotated[dict, Depends(decode_user_token)],
@@ -49,7 +49,7 @@ async def get_influences(
 @router.post("/remove_influence", summary="Remove influence")
 async def remove_influence(
         _: Annotated[dict, Depends(decode_user_token)],
-        influence: InfluenceRequest,
+        influence: Influence,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
     await mongo_db.remove_user_influence(influence.influenced_by, influence.influenced_to)

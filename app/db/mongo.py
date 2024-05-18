@@ -83,21 +83,12 @@ class AsyncMongoClient(AsyncIOMotorClient):
         await self.users_collection.update_one({"id": user_id}, {"$set": {"bio": bio}}, upsert=True)
 
     async def add_beatmap_to_user(self, user_id: int, beatmap: Beatmap):
-        await self.users_collection.update_one({"id": user_id}, {"$push": beatmap}, upsert=True)
+        await self.users_collection.update_one({"id": user_id}, {"$push": {"beatmaps": beatmap.model_dump()}}, upsert=True)
 
-    async def remove_beatmap_from_user(self, user_id: int, map_id: int):
+    async def remove_beatmap_from_user(self, user_id: int, beatmap: Beatmap):
         await self.users_collection.update_one(
             {"id": user_id},
-            {"$pull": {"beatmaps": {"id": map_id}}}
-        )
-
-    async def add_beatmap_to_influence(self, influence_id: int, beatmap: Beatmap):
-        await self.influences_collection.update_one({"id": influence_id}, {"$push": beatmap}, upsert=True)
-
-    async def remove_beatmap_from_influence(self, influence_id: int, map_id: int):
-        await self.influences_collection.update_one(
-            {"id": influence_id},
-            {"$pull": {"beatmaps": {"id": map_id}}}
+            {"$pull": {"beatmaps": beatmap.model_dump()}}
         )
 
     async def get_leaderboard(self):
