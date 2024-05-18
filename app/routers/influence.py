@@ -34,6 +34,22 @@ async def add_influence(
         description=influence_request.description,
         beatmaps=influence_request.beatmaps
     )
-    await mongo_db.add_user_influence(
-        influence=influence)
-    return
+    await mongo_db.add_user_influence(influence=influence)
+
+
+@router.post("/add_beatmap", summary="Add beatmap to influence")
+async def add_beatmap_to_influence(
+        user: Annotated[dict, Depends(decode_user_token)],
+        beatmap: Beatmap,
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+):
+    await mongo_db.add_beatmap_to_influence(user["id"], beatmap)
+
+
+@router.delete("/remove_beatmap/{map_id}", summary="Remove beatmap from influence")
+async def remove_beatmap_from_influence(
+        user: Annotated[dict, Depends(decode_user_token)],
+        map_id: int,
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+):
+    await mongo_db.remove_beatmap_from_influence(user["id"], map_id)

@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.config import settings
-from app.db.mongo import AsyncMongoClient, User, get_mongo_db
+from app.db.mongo import AsyncMongoClient, Beatmap, User, get_mongo_db
 from app.utils.jwt import decode_user_token
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-class Bio(BaseModel):
+class RequestBio(BaseModel):
     bio: str
 
 
@@ -40,7 +40,25 @@ async def get_user_by_id(
 @router.post("/bio", summary="Updates user bio")
 async def update_user_bio(
         user: Annotated[dict, Depends(decode_user_token)],
-        bio: Bio,
+        bio: RequestBio,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
     return await mongo_db.update_user_bio(user["id"], bio.bio)
+
+
+@router.post("/add_beatmap", summary="Add beatmap to user")
+async def add_beatmap_to_user(
+        user: Annotated[dict, Depends(decode_user_token)],
+        beatmap: Beatmap,
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+):
+    await mongo_db.add_beatmap_to_user(user["id"], beatmap)
+
+
+@router.delete("/remove_beatmap/{map_id}", summary="Remove beatmap from user")
+async def remove_beatmap_from_user(
+        user: Annotated[dict, Depends(decode_user_token)],
+        map_id: int,
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+):
+    await mongo_db.remove_beatmap_from_user(user["id"], map_id)

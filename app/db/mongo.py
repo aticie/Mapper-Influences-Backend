@@ -20,14 +20,16 @@ class Influence(BaseModel):
     modified_at: datetime.datetime = datetime.datetime.now()
     type: int = 1
     description: Optional[str] = None
-    beatmaps: Optional[Beatmap] = None
+    beatmaps: Optional[list[Beatmap]] = None
 
 
 class User(BaseModel):
     id: int
     username: str
     avatar_url: str
+    have_ranked_map: bool
     bio: Optional[str] = None
+    beatmaps: Optional[list[Beatmap]] = None
 
 
 class LeaderboardUser(User):
@@ -69,8 +71,26 @@ class AsyncMongoClient(AsyncIOMotorClient):
         await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
         return db_user
 
-    async def update_user_bio(self, user: id, bio: str):
-        await self.users_collection.update_one({"id": user}, {"$set": {"bio": bio}}, upsert=True)
+    async def update_user_bio(self, user_id: int, bio: str):
+        await self.users_collection.update_one({"id": user_id}, {"$set": {"bio": bio}}, upsert=True)
+
+    async def add_beatmap_to_user(self, user_id: int, beatmap: Beatmap):
+        await self.users_collection.update_one({"id": user_id}, {"$push": beatmap}, upsert=True)
+
+    async def remove_beatmap_from_user(self, user_id: int, map_id: int):
+        await self.users_collection.update_one(
+            {"id": user_id},
+            {"$pull": {"beatmaps": {"id": map_id}}}
+        )
+
+    async def add_beatmap_to_influence(self, influence_id: int, beatmap: Beatmap):
+        await self.influences_collection.update_one({"id": influence_id}, {"$push": beatmap}, upsert=True)
+
+    async def remove_beatmap_from_influence(self, influence_id: int, map_id: int):
+        await self.influences_collection.update_one(
+            {"id": influence_id},
+            {"$pull": {"beatmaps": {"id": map_id}}}
+        )
 
     async def get_leaderboard(self):
         return await self.influences_collection.aggregate([
