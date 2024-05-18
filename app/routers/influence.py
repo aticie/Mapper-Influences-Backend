@@ -1,9 +1,10 @@
 from typing import Annotated, Optional
-from fastapi import APIRouter, Cookie, Depends
+from fastapi import APIRouter, Cookie, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.config import settings
 from app.db.mongo import AsyncMongoClient, Beatmap, Influence, get_mongo_db
+from app.routers.osu_api import get_user_osu
 from app.utils.jwt import decode_jwt
 
 router = APIRouter(prefix="/influence", tags=["influence"])
@@ -35,6 +36,11 @@ async def add_influence(
         beatmaps=influence_request.beatmaps
     )
     await mongo_db.add_user_influence(influence=influence)
+    user_osu = await get_user_osu(user["access_token"], influence.influenced_to)
+    # TODO do better error handling here
+    if "error" in user_osu:
+        raise HTTPException(status_code=404, detail="User not found")
+    await mongo_db.create_user(user_osu)
 
 
 @router.get("/get_influences/{user_id}", response_model=list[Influence], summary="Get all influences of user")

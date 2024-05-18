@@ -7,11 +7,13 @@ from app.utils.jwt import decode_jwt
 
 router = APIRouter(prefix="/osu_api", tags=["osu Api"])
 
+
 def get_access_token(
         user_token: Annotated[str, Cookie()],
 ):
     user = decode_jwt(user_token)
     return user["access_token"]
+
 
 @router.get("/beatmap/{id}", summary="get beatmapset data using osu api. Use type=beatmap to get beatmap data")
 async def get_beatmapset(

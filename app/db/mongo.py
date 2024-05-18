@@ -37,6 +37,13 @@ class LeaderboardUser(User):
     country: str
 
 
+def check_beatmap_count(user_data) -> bool:
+    final_count = user_data["ranked_beatmapset_count"]
+    final_count += user_data["loved_beatmapset_count"]
+    final_count += user_data["guest_beatmapset_count"]
+    return final_count > 0
+
+
 class AsyncMongoClient(AsyncIOMotorClient):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -71,6 +78,7 @@ class AsyncMongoClient(AsyncIOMotorClient):
             "avatar_url": user_details["avatar_url"],
             "username": user_details["username"],
             "country": user_details["country"]["code"],
+            "have_ranked_map": check_beatmap_count(user_details),
         }
         await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
         return db_user
