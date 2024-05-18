@@ -14,7 +14,7 @@ class InfluenceRequest(BaseModel):
     influenced_to: int
     type: int = 1
     description: Optional[str] = None
-    beatmaps: Optional[Beatmap] = None
+    beatmaps: Optional[list[Beatmap]] = None
 
 
 def decode_user_token(
