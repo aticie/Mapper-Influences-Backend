@@ -52,7 +52,7 @@ async def search(
         query: str,
         access_token: Annotated[str, Depends(get_access_token)],
 ):
-    response_body = await search(access_token, query)
+    response_body = await search_osu(access_token, query)
     return response_body["user"]["data"]
 
 
