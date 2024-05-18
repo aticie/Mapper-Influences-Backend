@@ -30,7 +30,6 @@ async def get_beatmapset(
         raise HTTPException(
             status_code=400, detail="Invalid type, type can be 'beatmap' or 'beatmapset'")
 
-
 @router.get("/user/{user_id}", summary="get user data using osu api")
 async def get_user(
         user_id: int,

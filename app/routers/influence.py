@@ -41,6 +41,7 @@ async def add_influence(
     if "error" in user_osu:
         raise HTTPException(status_code=404, detail="User not found")
     await mongo_db.create_user(user_osu)
+    return
 
 
 @router.get("/get_influences/{user_id}", response_model=list[Influence], summary="Get all influences of user")
@@ -59,3 +60,4 @@ async def remove_influence(
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
     await mongo_db.remove_user_influence(user["id"], influenced_to)
+    return
