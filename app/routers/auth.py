@@ -32,9 +32,10 @@ async def osu_oauth2_redirect(
 
 
 @router.get("/logout", summary="Logs out the user. (basically removes the cookie)")
-async def logout(response: Response):
-    response.delete_cookie("user_token")
-    return response
+async def logout():
+    redirect_response = RedirectResponse(settings.POST_LOGOUT_REDIRECT_URI)
+    redirect_response.delete_cookie("user_token")
+    return redirect_response
 
 
 async def get_osu_user(access_token: str):
