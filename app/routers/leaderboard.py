@@ -12,7 +12,7 @@ async def get_leaderboard(
     return await mongo_db.get_leaderboard()
 
 
-@router.get("/ranked_mappers", response_model=list[User], summary="Get top users which are mentioned by ranked mappers")
+@router.get("/ranked", response_model=list[User], summary="Get top users which are mentioned by ranked mappers")
 async def get_leaderboard(
     mongo_db: AsyncMongoClient = Depends(get_mongo_db),
 ):
