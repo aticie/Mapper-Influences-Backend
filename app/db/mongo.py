@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
+
 class Beatmap(BaseModel):
     is_beatmapset: bool
     id: int
@@ -29,6 +30,7 @@ class User(BaseModel):
     have_ranked_map: bool
     bio: Optional[str] = None
     beatmaps: list[Beatmap] = []
+    mention_count: Optional[int] = None
 
 
 class LeaderboardUser(User):
@@ -85,6 +87,14 @@ class AsyncMongoClient(AsyncIOMotorClient):
     async def get_influences(self, user_id: int):
         logger.debug(f"Getting user influences of {user_id}")
         return await self.influences_collection.find({"influenced_by": user_id}, {"_id": False}).to_list(length=None)
+
+    async def get_mentions(self, user_id: int):
+        logger.debug(f"Getting user mentions of {user_id}")
+        return await self.influences_collection.find({"influenced_to": user_id}, {"_id": False}).to_list(length=None)
+
+    async def get_mention_count(self, user_id: int):
+        logger.debug(f"Getting user mention count of {user_id}")
+        return await self.influences_collection.count_documents({"influenced_to": user_id})
 
     async def update_user_bio(self, user_id: int, bio: str):
         await self.users_collection.update_one({"id": user_id}, {"$set": {"bio": bio}}, upsert=True)

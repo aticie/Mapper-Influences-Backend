@@ -25,10 +25,7 @@ async def get_user_details(
         user: Annotated[dict, Depends(decode_user_token)],
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
-    result = await mongo_db.get_user_details(user["id"])
-    if result is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return result
+    return await get_user_data(user["id"], mongo_db)
 
 
 @router.get("/{user_id}", response_model=User, summary="Gets user details from database")
@@ -37,10 +34,7 @@ async def get_user_by_id(
         user_id: int,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
-    result = await mongo_db.get_user_details(user_id)
-    if result is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return result
+    return await get_user_data(user_id, mongo_db)
 
 
 @router.post("/bio", summary="Updates user bio")
@@ -76,3 +70,12 @@ async def remove_beatmap_from_user(
 
     await mongo_db.remove_beatmap_from_user(user["id"], id, is_beatmapset)
     return
+
+
+async def get_user_data(user_id: int, mongo_db: AsyncMongoClient):
+    result = await mongo_db.get_user_details(user_id)
+    count = await mongo_db.get_mention_count(user_id)
+    result["mention_count"] = count
+    if result is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return result

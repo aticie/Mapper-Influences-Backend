@@ -53,6 +53,15 @@ async def get_influences(
     return await mongo_db.get_influences(user_id)
 
 
+@router.get("/get_mentions/{user_id}", response_model=list[Influence], summary="Get all mentions of user, basically the opposite of influences")
+async def get_influences(
+        _: Annotated[dict, Depends(decode_user_token)],
+        user_id: int,
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+):
+    return await mongo_db.get_mentions(user_id)
+
+
 @router.delete("/remove_influence/{influenced_to}", summary="Remove influence")
 async def remove_influence(
         user: Annotated[dict, Depends(decode_user_token)],
