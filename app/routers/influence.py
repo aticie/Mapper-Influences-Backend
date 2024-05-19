@@ -29,18 +29,21 @@ async def add_influence(
         user: Annotated[dict, Depends(decode_user_token)],
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
+
+    db_user = await mongo_db.get_user_details(user["id"])
     influence = Influence(
         influenced_by=user["id"],
         influenced_to=influence_request.influenced_to,
         description=influence_request.description,
-        beatmaps=influence_request.beatmaps
+        beatmaps=influence_request.beatmaps,
+        ranked=db_user["have_ranked_map"]
     )
-    await mongo_db.add_user_influence(influence=influence)
     user_osu = await get_user_osu(user["access_token"], influence.influenced_to)
     # TODO do better error handling here
     if "error" in user_osu:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found on osu!")
     await mongo_db.create_user(user_osu)
+    await mongo_db.add_user_influence(influence=influence)
     return
 
 

@@ -21,6 +21,7 @@ class Influence(BaseModel):
     type: int = 1
     description: Optional[str] = None
     beatmaps: list[Beatmap] = []
+    ranked: bool = False
 
 
 class User(BaseModel):
@@ -31,10 +32,6 @@ class User(BaseModel):
     bio: Optional[str] = None
     beatmaps: list[Beatmap] = []
     mention_count: Optional[int] = None
-
-
-class LeaderboardUser(User):
-    influence_count: int
     country: str
 
 
@@ -74,14 +71,14 @@ class AsyncMongoClient(AsyncIOMotorClient):
         assert "username" in user_details
         assert "country" in user_details
 
-        db_user = {
-            "id": user_details["id"],
-            "avatar_url": user_details["avatar_url"],
-            "username": user_details["username"],
-            "country": user_details["country"]["code"],
-            "have_ranked_map": has_ranked_beatmapsets(user_details),
-        }
-        await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
+        db_user = User(
+            id=user_details["id"],
+            avatar_url=user_details["avatar_url"],
+            username=user_details["username"],
+            country=user_details["country"]["code"],
+            have_ranked_map=has_ranked_beatmapsets(user_details),
+        )
+        await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user.model_dump()}, upsert=True)
         return db_user
 
     async def get_influences(self, user_id: int):
@@ -124,17 +121,59 @@ class AsyncMongoClient(AsyncIOMotorClient):
                 "username": {"$first": "$user.username"},
                 "avatar_url": {"$first": "$user.avatar_url"},
                 "country": {"$first": "$user.country"},
-                "influence_count": {"$sum": 1}
+                "have_ranked_map": {"$first": "$user.have_ranked_map"},
+                "bio": {"$first": "$user.bio"},
+                "beatmaps": {"$first": "$user.beatmaps"},
+                "mention_count": {"$sum": 1}
             }},
-            {"$sort": {"influence_count": -1}},
+            {"$sort": {"mention_count": -1}},
             {"$limit": 25},
             {"$project": {
                 "_id": 0,
                 "id": "$user_id",
                 "username": 1,
                 "avatar_url": 1,
-                "influence_count": 1,
-                "country": 1
+                "country": 1,
+                "have_ranked_map": 1,
+                "bio": 1,
+                "beatmaps": 1,
+                "mention_count": 1,
+            }}
+        ]).to_list(length=None)
+
+    async def get_ranked_leaderboard(self):
+        return await self.influences_collection.aggregate([
+            {"$lookup": {
+                "from": "Users",
+                "localField": "influenced_to",
+                "foreignField": "id",
+                "as": "user"
+            }},
+            {"$unwind": "$user"},
+            {"$match": {"ranked": True}},
+            {"$group": {
+                "_id": "$influenced_to",
+                "user_id": {"$first": "$user.id"},
+                "username": {"$first": "$user.username"},
+                "avatar_url": {"$first": "$user.avatar_url"},
+                "country": {"$first": "$user.country"},
+                "have_ranked_map": {"$first": "$user.have_ranked_map"},
+                "bio": {"$first": "$user.bio"},
+                "beatmaps": {"$first": "$user.beatmaps"},
+                "mention_count": {"$sum": 1}
+            }},
+            {"$sort": {"mention_count": -1}},
+            {"$limit": 25},
+            {"$project": {
+                "_id": 0,
+                "id": "$user_id",
+                "username": 1,
+                "avatar_url": 1,
+                "country": 1,
+                "have_ranked_map": 1,
+                "bio": 1,
+                "beatmaps": 1,
+                "mention_count": 1,
             }}
         ]).to_list(length=None)
 
