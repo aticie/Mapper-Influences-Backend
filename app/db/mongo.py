@@ -71,13 +71,13 @@ class AsyncMongoClient(AsyncIOMotorClient):
         assert "username" in user_details
         assert "country" in user_details
 
-        db_user = User(
-            id=user_details["id"],
-            avatar_url=user_details["avatar_url"],
-            username=user_details["username"],
-            country=user_details["country"]["code"],
-            have_ranked_map=has_ranked_beatmapsets(user_details),
-        ).model_dump()
+        db_user = {
+            "id": user_details["id"],
+            "avatar_url": user_details["avatar_url"],
+            "username": user_details["username"],
+            "country": user_details["country"]["code"],
+            "have_ranked_map": has_ranked_beatmapsets(user_details),
+        }
         await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
         return db_user
 
