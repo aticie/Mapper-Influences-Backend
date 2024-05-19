@@ -36,6 +36,7 @@ async def add_influence(
         influenced_to=influence_request.influenced_to,
         description=influence_request.description,
         beatmaps=influence_request.beatmaps,
+        type=influence_request.type,
         ranked=db_user["have_ranked_map"]
     )
     user_osu = await get_user_osu(user["access_token"], influence.influenced_to)
