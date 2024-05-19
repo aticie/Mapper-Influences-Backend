@@ -1,7 +1,7 @@
-from typing import Annotated
+from typing import Annotated, Dict
 
 import aiohttp
-from fastapi import APIRouter, Depends, HTTPException, Cookie
+from fastapi import APIRouter, Depends, HTTPException, Cookie, Request
 
 from app.utils.jwt import decode_jwt
 
@@ -57,12 +57,12 @@ async def search(
     return response_body["user"]["data"]
 
 
-@router.get("/search_map/{query}", summary="search beatmaps using osu api")
+@router.get("/search_map", summary="search beatmaps using osu api")
 async def search_map(
-        query: str,
         access_token: Annotated[str, Depends(get_access_token)],
+        request: Request,
 ):
-    response_body = await search_map_osu(access_token, query)
+    response_body = await search_map_osu(access_token, str(request.query_params))
     return response_body["beatmapsets"]
 
 
@@ -103,13 +103,14 @@ async def search_user_osu(access_token: str, query: str):
     search_url = f"https://osu.ppy.sh/api/v2/search/?mode=user&query={query}"
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
-        async with session.get(search_url, params={"q": query}) as response:
+        async with session.get(search_url) as response:
             return await response.json()
 
 
 async def search_map_osu(access_token: str, query: str):
-    search_url = f"https://osu.ppy.sh/api/v2/beatmapsets/search?q={query}"
+    search_url = f"https://osu.ppy.sh/api/v2/beatmapsets/search?{query}"
+    print(search_url)
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
-        async with session.get(search_url, params={"q": query}) as response:
+        async with session.get(search_url) as response:
             return await response.json()
