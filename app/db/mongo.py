@@ -7,7 +7,6 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
-
 class Beatmap(BaseModel):
     is_beatmapset: bool
     id: int
@@ -20,16 +19,16 @@ class Influence(BaseModel):
     modified_at: datetime.datetime = datetime.datetime.now()
     type: int = 1
     description: Optional[str] = None
-    beatmaps: Optional[list[Beatmap]] = None
+    beatmaps: list[Beatmap] = []
 
 
 class User(BaseModel):
     id: int
     username: str
     avatar_url: str
-    have_ranked_map: bool = False
+    have_ranked_map: bool
     bio: Optional[str] = None
-    beatmaps: Optional[list[Beatmap]] = None
+    beatmaps: list[Beatmap] = []
 
 
 class LeaderboardUser(User):
@@ -37,7 +36,7 @@ class LeaderboardUser(User):
     country: str
 
 
-def check_beatmap_count(user_data) -> bool:
+def has_ranked_beatmapsets(user_data) -> bool:
     final_count = user_data["ranked_beatmapset_count"]
     final_count += user_data["loved_beatmapset_count"]
     final_count += user_data["guest_beatmapset_count"]
@@ -78,7 +77,7 @@ class AsyncMongoClient(AsyncIOMotorClient):
             "avatar_url": user_details["avatar_url"],
             "username": user_details["username"],
             "country": user_details["country"]["code"],
-            "have_ranked_map": check_beatmap_count(user_details),
+            "have_ranked_map": has_ranked_beatmapsets(user_details),
         }
         await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
         return db_user

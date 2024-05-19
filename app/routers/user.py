@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,6 +9,11 @@ from app.db.mongo import AsyncMongoClient, Beatmap, User, get_mongo_db
 from app.utils.jwt import decode_user_token
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+class BeatmapIdType(Enum):
+    diff = False
+    set = True
 
 
 class RequestBio(BaseModel):
@@ -59,16 +65,9 @@ async def add_beatmap_to_user(
 @router.delete("/remove_beatmap/{type}/{id}", summary="Remove beatmap from user, type can be 'set' or 'diff'")
 async def remove_beatmap_from_user(
         user: Annotated[dict, Depends(decode_user_token)],
-        type: str,
+        type: BeatmapIdType,
         id: int,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
-
-    if type == "set":
-        is_beatmapset = True
-    elif type == "diff":
-        is_beatmapset = False
-    else:
-        raise HTTPException(status_code=400, detail="Invalid type")
-    await mongo_db.remove_beatmap_from_user(user["id"], id, is_beatmapset)
+    await mongo_db.remove_beatmap_from_user(user["id"], id, type.value)
     return
