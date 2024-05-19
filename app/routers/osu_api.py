@@ -30,6 +30,7 @@ async def get_beatmapset(
         raise HTTPException(
             status_code=400, detail="Invalid type, type can be 'beatmap' or 'beatmapset'")
 
+
 @router.get("/user/{user_id}", summary="get user data using osu api")
 async def get_user(
         user_id: int,
@@ -52,8 +53,17 @@ async def search(
         query: str,
         access_token: Annotated[str, Depends(get_access_token)],
 ):
-    response_body = await search_osu(access_token, query)
+    response_body = await search_user_osu(access_token, query)
     return response_body["user"]["data"]
+
+
+@router.get("/search_map/{query}", summary="search beatmaps using osu api")
+async def search_map(
+        query: str,
+        access_token: Annotated[str, Depends(get_access_token)],
+):
+    response_body = await search_map_osu(access_token, query)
+    return response_body["beatmapsets"]
 
 
 async def get_beatmap_osu(access_token: str, beatmap_id: int):
@@ -89,8 +99,16 @@ async def get_user_beatmaps_osu(access_token: str, user_id: int, type: str):
             return await response.json()
 
 
-async def search_osu(access_token: str, query: str):
+async def search_user_osu(access_token: str, query: str):
     search_url = f"https://osu.ppy.sh/api/v2/search/?mode=user&query={query}"
+    auth_header = {"Authorization": f"Bearer {access_token}"}
+    async with aiohttp.ClientSession(headers=auth_header) as session:
+        async with session.get(search_url, params={"q": query}) as response:
+            return await response.json()
+
+
+async def search_map_osu(access_token: str, query: str):
+    search_url = f"https://osu.ppy.sh/api/v2/beatmapsets/search?q={query}"
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(search_url, params={"q": query}) as response:
