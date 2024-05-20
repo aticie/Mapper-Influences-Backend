@@ -1,7 +1,7 @@
 from typing import Annotated, Dict
 
 import aiohttp
-from fastapi import APIRouter, Depends, HTTPException, Cookie, Request
+from fastapi import APIRouter, Depends, HTTPException, Cookie, Request, Response
 
 from app.utils.jwt import decode_jwt
 
@@ -22,13 +22,15 @@ async def get_beatmapset(
         type: str | None = None,
 ):
     if type == "beatmapset" or type is None:
-        return await get_beatmapset_osu(access_token, id)
+        data = await get_beatmapset_osu(access_token, id)
     elif type == "beatmap":
         beatmap = await get_beatmap_osu(access_token, id)
-        return await get_beatmapset_osu(access_token, beatmap["beatmapset_id"])
+        data = await get_beatmapset_osu(access_token, beatmap["beatmapset_id"])
     else:
         raise HTTPException(
             status_code=400, detail="Invalid type, type can be 'beatmap' or 'beatmapset'")
+
+    return Response(content=data, media_type="application/json")
 
 
 @router.get("/user/{user_id}", summary="get user data using osu api")
@@ -36,7 +38,9 @@ async def get_user(
         user_id: int,
         access_token: Annotated[str, Depends(get_access_token)],
 ):
-    return await get_user_osu(access_token, user_id)
+
+    data = await get_user_osu(access_token, user_id)
+    return Response(content=data, media_type="application/json")
 
 
 @router.get("/user_beatmaps/{beatmap_id}/{type}", summary="get user beatmap data using osu api")
@@ -45,7 +49,8 @@ async def get_user_beatmap(
         type: str,
         access_token: Annotated[str, Depends(get_access_token)],
 ):
-    return await get_user_beatmaps_osu(access_token, beatmap_id, type)
+    data = await get_user_beatmaps_osu(access_token, beatmap_id, type)
+    return Response(content=data, media_type="application/json")
 
 
 @router.get("/search/{query}", summary="search users using osu api")
@@ -53,8 +58,8 @@ async def search(
         query: str,
         access_token: Annotated[str, Depends(get_access_token)],
 ):
-    response_body = await search_user_osu(access_token, query)
-    return response_body["user"]["data"]
+    data = await search_user_osu(access_token, query)
+    return Response(content=data, media_type="application/json")
 
 
 @router.get("/search_map", summary="search beatmaps using osu api")
@@ -62,8 +67,8 @@ async def search_map(
         access_token: Annotated[str, Depends(get_access_token)],
         request: Request,
 ):
-    response_body = await search_map_osu(access_token, str(request.query_params))
-    return response_body["beatmapsets"]
+    data = await search_map_osu(access_token, str(request.query_params))
+    return Response(content=data, media_type="application/json")
 
 
 async def get_beatmap_osu(access_token: str, beatmap_id: int):
@@ -71,7 +76,7 @@ async def get_beatmap_osu(access_token: str, beatmap_id: int):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(beatmap_url) as response:
-            return await response.json()
+            return await response.text()
 
 
 async def get_beatmapset_osu(access_token: str, beatmapset_id: int):
@@ -79,7 +84,7 @@ async def get_beatmapset_osu(access_token: str, beatmapset_id: int):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(beatmapset_url) as response:
-            return await response.json()
+            return await response.text()
 
 
 async def get_user_osu(access_token: str, user_id: int):
@@ -87,7 +92,7 @@ async def get_user_osu(access_token: str, user_id: int):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(user_url) as response:
-            return await response.json()
+            return await response.text()
 
 
 async def get_user_beatmaps_osu(access_token: str, user_id: int, type: str):
@@ -96,7 +101,7 @@ async def get_user_beatmaps_osu(access_token: str, user_id: int, type: str):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(user_maps_url) as response:
-            return await response.json()
+            return await response.text()
 
 
 async def search_user_osu(access_token: str, query: str):
