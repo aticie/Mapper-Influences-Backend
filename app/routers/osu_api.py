@@ -49,7 +49,7 @@ async def get_user(
 
 
 @router.get("/user_beatmaps/{beatmap_id}/{type}", summary="get user beatmap data using osu api")
-@cache(namespace=OSU_API_USER_CACHE_EXPIRE, expire=OSU_API_BEATMAP_CACHE_EXPIRE, key_builder=request_key_builder)
+@cache(namespace=OSU_API_CACHE_NAMESPACE, expire=OSU_API_BEATMAP_CACHE_EXPIRE, key_builder=request_key_builder)
 async def get_user_beatmap(
         beatmap_id: int,
         type: str,
@@ -59,7 +59,7 @@ async def get_user_beatmap(
 
 
 @router.get("/search/{query}", summary="search users using osu api")
-@cache(namespace=OSU_API_USER_CACHE_EXPIRE, expire=OSU_API_SEARCH_CACHE_EXPIRE, key_builder=request_key_builder)
+@cache(namespace=OSU_API_CACHE_NAMESPACE, expire=OSU_API_SEARCH_CACHE_EXPIRE, key_builder=request_key_builder)
 async def search(
         query: str,
         access_token: Annotated[str, Depends(get_access_token)],
