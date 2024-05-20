@@ -4,6 +4,9 @@ from fastapi_cache.decorator import cache
 
 from app.db.mongo import AsyncMongoClient, get_mongo_db
 
+LEADERBOARD_CACHE_EXPIRE = 60
+LEADERBOARD_CACHE_NAMESPACE = "leaderboard"
+
 router = APIRouter(prefix="/leaderboard", tags=["leaderboard"])
 
 
@@ -17,7 +20,7 @@ class LeaderboardResponseUser(BaseModel):
 
 
 @router.get("", response_model=list[LeaderboardResponseUser], summary="Get top users which are most mentioned by others")
-@cache(namespace="leaderboard", expire=60)
+@cache(namespace=LEADERBOARD_CACHE_NAMESPACE, expire=LEADERBOARD_CACHE_EXPIRE)
 async def get_leaderboard(
     mongo_db: AsyncMongoClient = Depends(get_mongo_db),
 ):
@@ -25,7 +28,7 @@ async def get_leaderboard(
 
 
 @router.get("/ranked", response_model=list[LeaderboardResponseUser], summary="Get top users which are mentioned by ranked mappers")
-@cache(namespace="osu_api", expire=60)
+@cache(namespace=LEADERBOARD_CACHE_NAMESPACE, expire=LEADERBOARD_CACHE_EXPIRE)
 async def get_leaderboard(
     mongo_db: AsyncMongoClient = Depends(get_mongo_db),
 ):
