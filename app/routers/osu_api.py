@@ -84,7 +84,7 @@ async def get_beatmapset_osu(access_token: str, beatmapset_id: int):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(beatmapset_url) as response:
-            return await response.text()
+            return await response.json()
 
 
 async def get_user_osu(access_token: str, user_id: int):
@@ -92,7 +92,7 @@ async def get_user_osu(access_token: str, user_id: int):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(user_url) as response:
-            return await response.text()
+            return await response.json()
 
 
 async def get_user_beatmaps_osu(access_token: str, user_id: int, type: str):
@@ -101,7 +101,7 @@ async def get_user_beatmaps_osu(access_token: str, user_id: int, type: str):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(user_maps_url) as response:
-            return await response.text()
+            return await response.json()
 
 
 async def search_user_osu(access_token: str, query: str):
@@ -109,7 +109,7 @@ async def search_user_osu(access_token: str, query: str):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(search_url) as response:
-            return await response.text()
+            return await response.json()
 
 
 async def search_map_osu(access_token: str, query: str):
@@ -117,4 +117,4 @@ async def search_map_osu(access_token: str, query: str):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(search_url) as response:
-            return await response.text()
+            return await response.json()
