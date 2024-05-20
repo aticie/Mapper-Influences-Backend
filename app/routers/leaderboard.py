@@ -15,14 +15,14 @@ class LeaderboardResponseUser(BaseModel):
     mention_count: int
 
 
-@router.get("", response_model=LeaderboardResponseUser, summary="Get top users which are most mentioned by others")
+@router.get("", response_model=list[LeaderboardResponseUser], summary="Get top users which are most mentioned by others")
 async def get_leaderboard(
     mongo_db: AsyncMongoClient = Depends(get_mongo_db),
 ):
     return await mongo_db.get_leaderboard()
 
 
-@router.get("/ranked", response_model=LeaderboardResponseUser, summary="Get top users which are mentioned by ranked mappers")
+@router.get("/ranked", response_model=list[LeaderboardResponseUser], summary="Get top users which are mentioned by ranked mappers")
 async def get_leaderboard(
     mongo_db: AsyncMongoClient = Depends(get_mongo_db),
 ):
