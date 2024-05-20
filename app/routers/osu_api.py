@@ -18,7 +18,7 @@ def get_access_token(
 
 
 @router.get("/beatmap/{id}", summary="get beatmapset data using osu api. Use type=beatmap to get beatmap data")
-@cache(namespace="osu_api", expire=10*60)
+@cache(namespace="osu_api", expire=24*60*60)
 async def get_beatmapset(
         id: int,
         access_token: Annotated[str, Depends(get_access_token)],
@@ -35,7 +35,7 @@ async def get_beatmapset(
 
 
 @router.get("/user/{user_id}", summary="get user data using osu api")
-@cache(namespace="osu_api", expire=10*60)
+@cache(namespace="osu_api", expire=1*60*60)
 async def get_user(
         user_id: int,
         access_token: Annotated[str, Depends(get_access_token)],
@@ -44,7 +44,7 @@ async def get_user(
 
 
 @router.get("/user_beatmaps/{beatmap_id}/{type}", summary="get user beatmap data using osu api")
-@cache(namespace="osu_api", expire=10*60)
+@cache(namespace="osu_api", expire=24*60*60)
 async def get_user_beatmap(
         beatmap_id: int,
         type: str,
