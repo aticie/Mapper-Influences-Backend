@@ -109,7 +109,6 @@ async def search_user_osu(access_token: str, query: str):
 
 async def search_map_osu(access_token: str, query: str):
     search_url = f"https://osu.ppy.sh/api/v2/beatmapsets/search?{query}"
-    print(search_url)
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(search_url) as response:
