@@ -25,15 +25,13 @@ async def get_beatmapset(
         type: str | None = None,
 ):
     if type == "beatmapset" or type is None:
-        data = await get_beatmapset_osu(access_token, id)
+        return await get_beatmapset_osu(access_token, id)
     elif type == "beatmap":
         beatmap = await get_beatmap_osu(access_token, id)
-        data = await get_beatmapset_osu(access_token, beatmap["beatmapset_id"])
+        return await get_beatmapset_osu(access_token, beatmap["beatmapset_id"])
     else:
         raise HTTPException(
             status_code=400, detail="Invalid type, type can be 'beatmap' or 'beatmapset'")
-
-    return Response(content=data, media_type="application/json")
 
 
 @router.get("/user/{user_id}", summary="get user data using osu api")
@@ -42,7 +40,6 @@ async def get_user(
         user_id: int,
         access_token: Annotated[str, Depends(get_access_token)],
 ):
-
     return await get_user_osu(access_token, user_id)
 
 
