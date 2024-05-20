@@ -1,3 +1,4 @@
+import base64
 import datetime
 import logging
 from typing import Any, Optional
@@ -100,7 +101,7 @@ class AsyncMongoClient(AsyncIOMotorClient):
         return await self.influences_collection.count_documents({"influenced_to": user_id})
 
     async def update_user_bio(self, user_id: int, bio: str):
-        logger.debug(f"Updating user bio of {user_id}: {bio}")
+        logger.debug(f"Updating user bio of {user_id}: {base64.b64encode(bio.encode('UTF-8'))}")
         await self.users_collection.update_one({"id": user_id}, {"$set": {"bio": bio}}, upsert=True)
 
     async def add_beatmap_to_user(self, user_id: int, beatmap: Beatmap):
