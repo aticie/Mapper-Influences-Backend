@@ -21,6 +21,7 @@ async def osu_oauth2_redirect(
     redirect_response = RedirectResponse(settings.POST_LOGIN_REDIRECT_URI)
     access_token = await get_osu_auth_token(code=code)
     user = await get_osu_user(access_token["access_token"])
+    await mongo_db.add_real_user(user)
     db_user = await mongo_db.create_user(user_details=user)
     db_user["access_token"] = access_token["access_token"]
     jwt_token = obtain_jwt(
@@ -34,7 +35,7 @@ async def osu_oauth2_redirect(
 @router.get("/logout", summary="Logs out the user. (basically removes the cookie)")
 async def logout(response: Response):
     response.delete_cookie("user_token")
-    return 
+    return
 
 
 async def get_osu_user(access_token: str):
