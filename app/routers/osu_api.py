@@ -1,9 +1,10 @@
-from typing import Annotated, Dict
+from typing import Annotated
 
 import aiohttp
 from fastapi import APIRouter, Depends, HTTPException, Cookie, Request, Response
 from fastapi_cache.decorator import cache
 
+from app.routers import request_key_builder
 from app.utils.jwt import decode_jwt
 
 
@@ -18,7 +19,7 @@ def get_access_token(
 
 
 @router.get("/beatmap/{id}", summary="get beatmapset data using osu api. Use type=beatmap to get beatmap data")
-@cache(namespace="osu_api", expire=24*60*60)
+@cache(namespace="osu_api", expire=24*60*60, key_builder=request_key_builder)
 async def get_beatmapset(
         id: int,
         access_token: Annotated[str, Depends(get_access_token)],
@@ -35,7 +36,7 @@ async def get_beatmapset(
 
 
 @router.get("/user/{user_id}", summary="get user data using osu api")
-@cache(namespace="osu_api", expire=6*60*60)
+@cache(namespace="osu_api", expire=6*60*60, key_builder=request_key_builder)
 async def get_user(
         user_id: int,
         access_token: Annotated[str, Depends(get_access_token)],
@@ -44,7 +45,7 @@ async def get_user(
 
 
 @router.get("/user_beatmaps/{beatmap_id}/{type}", summary="get user beatmap data using osu api")
-@cache(namespace="osu_api", expire=24*60*60)
+@cache(namespace="osu_api", expire=24*60*60, key_builder=request_key_builder)
 async def get_user_beatmap(
         beatmap_id: int,
         type: str,
@@ -54,7 +55,7 @@ async def get_user_beatmap(
 
 
 @router.get("/search/{query}", summary="search users using osu api")
-@cache(namespace="osu_api", expire=10*60)
+@cache(namespace="osu_api", expire=10*60, key_builder=request_key_builder)
 async def search(
         query: str,
         access_token: Annotated[str, Depends(get_access_token)],
@@ -63,7 +64,7 @@ async def search(
 
 
 @router.get("/search_map", summary="search beatmaps using osu api")
-@cache(namespace="osu_api", expire=10*60)
+@cache(namespace="osu_api", expire=10*60, key_builder=request_key_builder)
 async def search_map(
         access_token: Annotated[str, Depends(get_access_token)],
         request: Request,
