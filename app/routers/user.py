@@ -75,7 +75,7 @@ async def remove_beatmap_from_user(
 async def get_user_data(user_id: int, mongo_db: AsyncMongoClient):
     result = await mongo_db.get_user_details(user_id)
     count = await mongo_db.get_mention_count(user_id)
-    result["mention_count"] = count
     if result is None:
         raise HTTPException(status_code=404, detail="User not found")
+    result["mention_count"] = count
     return result
