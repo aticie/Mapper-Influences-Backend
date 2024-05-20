@@ -3,9 +3,11 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
 
 from app.db.mongo import close_mongo_client, start_mongo_client
-from app.routers import auth, influence, user, leaderboard , osu_api
+from app.routers import auth, influence, user, leaderboard, osu_api
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -14,6 +16,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     start_mongo_client(settings.MONGODB_URL)
+    FastAPICache.init(InMemoryBackend())
     yield
     close_mongo_client()
 

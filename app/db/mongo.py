@@ -20,19 +20,26 @@ class Influence(BaseModel):
     modified_at: datetime.datetime = datetime.datetime.now()
     type: int = 1
     description: Optional[str] = None
-    beatmaps: Optional[Beatmap] = None
+    beatmaps: Optional[list[Beatmap]] = []
+    ranked: bool = False
 
 
 class User(BaseModel):
     id: int
     username: str
     avatar_url: str
+    have_ranked_map: bool
     bio: Optional[str] = None
-
-
-class LeaderboardUser(User):
-    influence_count: int
+    beatmaps: Optional[list[Beatmap]] = []
+    mention_count: Optional[int] = None
     country: str
+
+
+def has_ranked_beatmapsets(user_data) -> bool:
+    final_count = user_data["ranked_beatmapset_count"]
+    final_count += user_data["loved_beatmapset_count"]
+    final_count += user_data["guest_beatmapset_count"]
+    return final_count > 0
 
 
 class AsyncMongoClient(AsyncIOMotorClient):
@@ -41,6 +48,7 @@ class AsyncMongoClient(AsyncIOMotorClient):
         self.main_db = self.get_database("MAPPER_INFLUENCES")
         self.users_collection = self.main_db.get_collection("Users")
         self.influences_collection = self.main_db.get_collection("Influences")
+        self.real_users_collection = self.main_db.get_collection("RealUsers")
 
     async def get_user_details(self, user_id: id):
         logger.debug(f"Getting user influences of {user_id}")
@@ -54,6 +62,10 @@ class AsyncMongoClient(AsyncIOMotorClient):
             {"$set": influence.model_dump()},
             upsert=True)
 
+    async def remove_user_influence(self, influenced_by: int, influenced_to: int):
+        logger.debug(f"Removing influence: {influenced_by} -> {influenced_to}")
+        return await self.influences_collection.delete_one({"influenced_by": influenced_by, "influenced_to": influenced_to})
+
     async def create_user(self, user_details: dict[str, Any]):
         assert "avatar_url" in user_details
         assert "id" in user_details
@@ -65,14 +77,46 @@ class AsyncMongoClient(AsyncIOMotorClient):
             "avatar_url": user_details["avatar_url"],
             "username": user_details["username"],
             "country": user_details["country"]["code"],
+            "have_ranked_map": has_ranked_beatmapsets(user_details),
         }
+        logger.debug(f"Upserting user: {db_user}")
         await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
         return db_user
 
-    async def update_user_bio(self, user: id, bio: str):
-        await self.users_collection.update_one({"id": user}, {"$set": {"bio": bio}}, upsert=True)
+    async def get_influences(self, user_id: int):
+        logger.debug(f"Getting user influences of {user_id}")
+        influences = await self.influences_collection.find({"influenced_by": user_id}, {"_id": False}).to_list(length=None)
+        logger.debug(f"User influences of {user_id}: {influences}")
+        return influences
+
+    async def get_mentions(self, user_id: int):
+        logger.debug(f"Getting user mentions of {user_id}")
+        mentions = await self.influences_collection.find({"influenced_to": user_id}, {"_id": False}).to_list(length=None)
+        logger.debug(f"User mentions of {user_id}: {mentions}")
+        return mentions
+
+    async def get_mention_count(self, user_id: int):
+        logger.debug(f"Getting user mention count of {user_id}")
+        return await self.influences_collection.count_documents({"influenced_to": user_id})
+
+    async def update_user_bio(self, user_id: int, bio: str):
+        logger.debug(f"Updating user bio of {user_id}: {bio}")
+        await self.users_collection.update_one({"id": user_id}, {"$set": {"bio": bio}}, upsert=True)
+
+    async def add_beatmap_to_user(self, user_id: int, beatmap: Beatmap):
+        logger.debug(f"Adding beatmap to user {user_id}: {beatmap}")
+        await self.users_collection.update_one({"id": user_id}, {"$push": {"beatmaps": beatmap.model_dump()}}, upsert=True)
+
+    async def remove_beatmap_from_user(self, user_id: int, beatmap_id: int, is_beatmapset: bool):
+        beatmap = Beatmap(is_beatmapset=is_beatmapset, id=beatmap_id)
+        logger.debug(f"Removing beatmap from user {user_id}: {beatmap}")
+        await self.users_collection.update_one(
+            {"id": user_id},
+            {"$pull": {"beatmaps": beatmap.model_dump()}}
+        )
 
     async def get_leaderboard(self):
+        logger.debug(f"Getting leaderboard")
         return await self.influences_collection.aggregate([
             {"$lookup": {
                 "from": "Users",
@@ -87,19 +131,70 @@ class AsyncMongoClient(AsyncIOMotorClient):
                 "username": {"$first": "$user.username"},
                 "avatar_url": {"$first": "$user.avatar_url"},
                 "country": {"$first": "$user.country"},
-                "influence_count": {"$sum": 1}
+                "have_ranked_map": {"$first": "$user.have_ranked_map"},
+                "mention_count": {"$sum": 1}
             }},
-            {"$sort": {"influence_count": -1}},
+            {"$sort": {"mention_count": -1}},
             {"$limit": 25},
             {"$project": {
                 "_id": 0,
                 "id": "$user_id",
                 "username": 1,
                 "avatar_url": 1,
-                "influence_count": 1,
-                "country": 1
+                "country": 1,
+                "have_ranked_map": 1,
+                "mention_count": 1,
             }}
         ]).to_list(length=None)
+
+    async def get_ranked_leaderboard(self):
+        logger.debug(f"Getting ranked leaderboard")
+        return await self.influences_collection.aggregate([
+            {"$lookup": {
+                "from": "Users",
+                "localField": "influenced_to",
+                "foreignField": "id",
+                "as": "user"
+            }},
+            {"$unwind": "$user"},
+            {"$match": {"ranked": True}},
+            {"$group": {
+                "_id": "$influenced_to",
+                "user_id": {"$first": "$user.id"},
+                "username": {"$first": "$user.username"},
+                "avatar_url": {"$first": "$user.avatar_url"},
+                "country": {"$first": "$user.country"},
+                "have_ranked_map": {"$first": "$user.have_ranked_map"},
+                "mention_count": {"$sum": 1}
+            }},
+            {"$sort": {"mention_count": -1}},
+            {"$limit": 25},
+            {"$project": {
+                "_id": 0,
+                "id": "$user_id",
+                "username": 1,
+                "avatar_url": 1,
+                "country": 1,
+                "have_ranked_map": 1,
+                "mention_count": 1,
+            }}
+        ]).to_list(length=None)
+
+    # TODO: instead of this, add this to `User` as boolean
+    async def add_real_user(self, user_details: dict[str, Any]):
+        logger.debug(f"Adding real user: {user_details}")
+        assert "avatar_url" in user_details
+        assert "id" in user_details
+        assert "username" in user_details
+        assert "country" in user_details
+        db_user = {
+            "id": user_details["id"],
+            "avatar_url": user_details["avatar_url"],
+            "username": user_details["username"],
+            "country": user_details["country"]["code"],
+            "have_ranked_map": has_ranked_beatmapsets(user_details),
+        }
+        await self.real_users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
 
 
 # singleton mongo client

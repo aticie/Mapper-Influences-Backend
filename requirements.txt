@@ -7,3 +7,4 @@ motor==3.4.0
 pymongo==4.6.3
 aiohttp==3.9.5
 pycryptodome==3.20.0
+fastapi-cache2[memcache]==0.2.1
