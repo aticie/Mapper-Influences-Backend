@@ -20,7 +20,7 @@ class Influence(BaseModel):
     modified_at: datetime.datetime = datetime.datetime.now()
     type: int = 1
     description: Optional[str] = None
-    beatmaps: list[Beatmap] = []
+    beatmaps: Optional[list[Beatmap]] = []
     ranked: bool = False
 
 
@@ -30,7 +30,7 @@ class User(BaseModel):
     avatar_url: str
     have_ranked_map: bool
     bio: Optional[str] = None
-    beatmaps: list[Beatmap] = []
+    beatmaps: Optional[list[Beatmap]] = []
     mention_count: Optional[int] = None
     country: str
 
@@ -122,8 +122,6 @@ class AsyncMongoClient(AsyncIOMotorClient):
                 "avatar_url": {"$first": "$user.avatar_url"},
                 "country": {"$first": "$user.country"},
                 "have_ranked_map": {"$first": "$user.have_ranked_map"},
-                "bio": {"$first": "$user.bio"},
-                "beatmaps": {"$first": "$user.beatmaps"},
                 "mention_count": {"$sum": 1}
             }},
             {"$sort": {"mention_count": -1}},
@@ -135,8 +133,6 @@ class AsyncMongoClient(AsyncIOMotorClient):
                 "avatar_url": 1,
                 "country": 1,
                 "have_ranked_map": 1,
-                "bio": 1,
-                "beatmaps": 1,
                 "mention_count": 1,
             }}
         ]).to_list(length=None)
@@ -158,8 +154,6 @@ class AsyncMongoClient(AsyncIOMotorClient):
                 "avatar_url": {"$first": "$user.avatar_url"},
                 "country": {"$first": "$user.country"},
                 "have_ranked_map": {"$first": "$user.have_ranked_map"},
-                "bio": {"$first": "$user.bio"},
-                "beatmaps": {"$first": "$user.beatmaps"},
                 "mention_count": {"$sum": 1}
             }},
             {"$sort": {"mention_count": -1}},
@@ -171,8 +165,6 @@ class AsyncMongoClient(AsyncIOMotorClient):
                 "avatar_url": 1,
                 "country": 1,
                 "have_ranked_map": 1,
-                "bio": 1,
-                "beatmaps": 1,
                 "mention_count": 1,
             }}
         ]).to_list(length=None)
