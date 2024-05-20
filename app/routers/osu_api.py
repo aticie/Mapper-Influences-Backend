@@ -2,8 +2,10 @@ from typing import Annotated, Dict
 
 import aiohttp
 from fastapi import APIRouter, Depends, HTTPException, Cookie, Request, Response
+from fastapi_cache.decorator import cache
 
 from app.utils.jwt import decode_jwt
+
 
 router = APIRouter(prefix="/osu_api", tags=["osu Api"])
 
@@ -16,6 +18,7 @@ def get_access_token(
 
 
 @router.get("/beatmap/{id}", summary="get beatmapset data using osu api. Use type=beatmap to get beatmap data")
+@cache(namespace="osu_api", expire=10*60)
 async def get_beatmapset(
         id: int,
         access_token: Annotated[str, Depends(get_access_token)],
@@ -34,41 +37,41 @@ async def get_beatmapset(
 
 
 @router.get("/user/{user_id}", summary="get user data using osu api")
+@cache(namespace="osu_api", expire=10*60)
 async def get_user(
         user_id: int,
         access_token: Annotated[str, Depends(get_access_token)],
 ):
 
-    data = await get_user_osu(access_token, user_id)
-    return Response(content=data, media_type="application/json")
+    return await get_user_osu(access_token, user_id)
 
 
 @router.get("/user_beatmaps/{beatmap_id}/{type}", summary="get user beatmap data using osu api")
+@cache(namespace="osu_api", expire=10*60)
 async def get_user_beatmap(
         beatmap_id: int,
         type: str,
         access_token: Annotated[str, Depends(get_access_token)],
 ):
-    data = await get_user_beatmaps_osu(access_token, beatmap_id, type)
-    return Response(content=data, media_type="application/json")
+    return await get_user_beatmaps_osu(access_token, beatmap_id, type)
 
 
 @router.get("/search/{query}", summary="search users using osu api")
+@cache(namespace="osu_api", expire=10*60)
 async def search(
         query: str,
         access_token: Annotated[str, Depends(get_access_token)],
 ):
-    data = await search_user_osu(access_token, query)
-    return Response(content=data, media_type="application/json")
+    return await search_user_osu(access_token, query)
 
 
 @router.get("/search_map", summary="search beatmaps using osu api")
+@cache(namespace="osu_api", expire=10*60)
 async def search_map(
         access_token: Annotated[str, Depends(get_access_token)],
         request: Request,
 ):
-    data = await search_map_osu(access_token, str(request.query_params))
-    return Response(content=data, media_type="application/json")
+    return await search_map_osu(access_token, str(request.query_params))
 
 
 async def get_beatmap_osu(access_token: str, beatmap_id: int):

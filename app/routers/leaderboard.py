@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from fastapi_cache.decorator import cache
 
 from app.db.mongo import AsyncMongoClient, get_mongo_db
 
@@ -16,6 +17,7 @@ class LeaderboardResponseUser(BaseModel):
 
 
 @router.get("", response_model=list[LeaderboardResponseUser], summary="Get top users which are most mentioned by others")
+@cache(namespace="leaderboard", expire=60)
 async def get_leaderboard(
     mongo_db: AsyncMongoClient = Depends(get_mongo_db),
 ):
@@ -23,6 +25,7 @@ async def get_leaderboard(
 
 
 @router.get("/ranked", response_model=list[LeaderboardResponseUser], summary="Get top users which are mentioned by ranked mappers")
+@cache(namespace="osu_api", expire=60)
 async def get_leaderboard(
     mongo_db: AsyncMongoClient = Depends(get_mongo_db),
 ):
