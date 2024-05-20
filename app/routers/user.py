@@ -30,6 +30,7 @@ async def get_user_details(
 
 @router.get("/{user_id}", response_model=User, summary="Gets user details from database")
 async def get_user_by_id(
+        _: Annotated[dict, Depends(decode_user_token)],
         user_id: int,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
