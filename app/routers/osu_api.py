@@ -35,7 +35,7 @@ async def get_beatmapset(
 
 
 @router.get("/user/{user_id}", summary="get user data using osu api")
-@cache(namespace="osu_api", expire=1*60*60)
+@cache(namespace="osu_api", expire=6*60*60)
 async def get_user(
         user_id: int,
         access_token: Annotated[str, Depends(get_access_token)],
