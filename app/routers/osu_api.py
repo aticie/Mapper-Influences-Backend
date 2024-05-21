@@ -151,8 +151,7 @@ async def check_response(response: aiohttp.ClientResponse):
         raise HTTPException(
             status_code=404, detail="Searched item could not be found on osu! API")
     elif response.status != 200:
-        logger.error(f"Error while fetching data from osu! API: {
-                     response.status}: {await response.text()}")
+        logger.error(f"Error while fetching data from osu! API: {response.status}: {await response.text()}")
         raise HTTPException(status_code=500)
 
 
