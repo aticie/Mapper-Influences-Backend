@@ -1,5 +1,5 @@
 from typing import Annotated, Optional
-
+import logging
 import aiohttp
 from fastapi import APIRouter, Depends, HTTPException, Cookie, Request, Response
 from fastapi_cache.decorator import cache
@@ -12,6 +12,9 @@ OSU_API_BEATMAP_CACHE_EXPIRE = 12*60*60
 OSU_API_USER_CACHE_EXPIRE = 3*60*60
 OSU_API_SEARCH_CACHE_EXPIRE = 10*60
 OSU_API_CACHE_NAMESPACE = "osu_api"
+
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/osu_api", tags=["osu! API"])
 
@@ -143,11 +146,22 @@ async def search_map(
     return await search_map_osu_parsed(access_token, str(request.query_params))
 
 
+async def check_response(response: aiohttp.ClientResponse):
+    if response.status == 404:
+        raise HTTPException(
+            status_code=404, detail="Searched item could not be found on osu! API")
+    elif response.status != 200:
+        logger.error(f"Error while fetching data from osu! API: {
+                     response.status}: {await response.text()}")
+        raise HTTPException(status_code=500)
+
+
 async def get_beatmap_osu_parsed(access_token: str, beatmap_id: int):
     beatmap_url = f"https://osu.ppy.sh/api/v2/beatmaps/{beatmap_id}"
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(beatmap_url) as response:
+            await check_response(response)
             text = await response.text()
             return BeatmapOsu.model_validate_json(text)
 
@@ -157,6 +171,7 @@ async def get_beatmapset_osu_parsed(access_token: str, beatmapset_id: int):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(beatmapset_url) as response:
+            await check_response(response)
             text = await response.text()
             return BeatmapsetOsu.model_validate_json(text)
 
@@ -166,6 +181,7 @@ async def get_user_osu_parsed(access_token: str, user_id: int):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(user_url) as response:
+            await check_response(response)
             text = await response.text()
             return UserOsu.model_validate_json(text)
 
@@ -175,6 +191,7 @@ async def search_user_osu_parsed(access_token: str, query: str):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(search_url) as response:
+            await check_response(response)
             text = await response.text()
             return OsuSearchResponse.model_validate_json(text)
 
@@ -184,5 +201,6 @@ async def search_map_osu_parsed(access_token: str, query: str):
     auth_header = {"Authorization": f"Bearer {access_token}"}
     async with aiohttp.ClientSession(headers=auth_header) as session:
         async with session.get(search_url) as response:
+            await check_response(response)
             text = await response.text()
             return OsuSearchMapResponse.model_validate_json(text)
