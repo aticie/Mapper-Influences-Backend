@@ -85,6 +85,7 @@ class BaseBeatmapset(ConfiguredModel):
     covers: Cover
     creator: str
     id: int
+    user_id: int
 
 
 class BeatmapsetOsu(BaseBeatmapset):
