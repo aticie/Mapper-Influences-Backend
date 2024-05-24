@@ -7,7 +7,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 
 from app.db.mongo import close_mongo_client, start_mongo_client
-from app.routers import auth, influence, user, leaderboard, osu_api
+from app.routers import auth, influence, osu_api_full_response, user, leaderboard, osu_api
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -39,3 +39,4 @@ app.include_router(influence.router)
 app.include_router(user.router)
 app.include_router(leaderboard.router)
 app.include_router(osu_api.router)
+app.include_router(osu_api_full_response.router)

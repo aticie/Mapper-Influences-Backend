@@ -1,10 +1,10 @@
 from typing import Annotated, Optional
+import aiohttp
 from fastapi import APIRouter, Cookie, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.config import settings
 from app.db.mongo import AsyncMongoClient, Beatmap, Influence, get_mongo_db
-from app.routers.osu_api import get_user_osu
 from app.utils.jwt import decode_jwt
 
 router = APIRouter(prefix="/influence", tags=["influence"])
@@ -74,3 +74,11 @@ async def remove_influence(
 ):
     await mongo_db.remove_user_influence(user["id"], influenced_to)
     return
+
+
+async def get_user_osu(access_token: str, user_id: int):
+    user_url = f"https://osu.ppy.sh/api/v2/users/{user_id}"
+    auth_header = {"Authorization": f"Bearer {access_token}"}
+    async with aiohttp.ClientSession(headers=auth_header) as session:
+        async with session.get(user_url) as response:
+            return await response.json()
