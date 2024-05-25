@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Response
 from fastapi.responses import RedirectResponse
 
 from app.config import settings
-from app.db.mongo import AsyncMongoClient, get_mongo_db
+from app.db.instance import get_mongo_db, AsyncMongoClient
 from app.utils.jwt import obtain_jwt
 
 logger = logging.getLogger(__name__)

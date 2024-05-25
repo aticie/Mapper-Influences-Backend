@@ -4,8 +4,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.config import settings
-from app.db.mongo import AsyncMongoClient, Beatmap, User, get_mongo_db
+from app.db import Beatmap, User
+from app.db.instance import get_mongo_db, AsyncMongoClient
 from app.utils.jwt import decode_user_token
 
 router = APIRouter(prefix="/users", tags=["users"])
