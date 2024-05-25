@@ -36,8 +36,7 @@ class UserMongoClient(BaseAsyncMongoClient):
         return db_user
 
     async def update_user_bio(self, user_id: int, bio: str):
-        logger.debug(f"Updating user bio of {user_id}: {
-                     base64.b64encode(bio.encode('UTF-8'))}")
+        logger.debug(f"Updating user bio of {user_id}: {base64.b64encode(bio.encode('UTF-8'))}")
         await self.users_collection.update_one({"id": user_id}, {"$set": {"bio": bio}}, upsert=True)
 
     async def add_beatmap_to_user(self, user_id: int, beatmap: Beatmap):
