@@ -22,14 +22,10 @@ class LeaderboardResponseUser(BaseModel):
 @router.get("", response_model=list[LeaderboardResponseUser], summary="Get top users which are most mentioned by others")
 @cache(namespace=LEADERBOARD_CACHE_NAMESPACE, expire=LEADERBOARD_CACHE_EXPIRE)
 async def get_leaderboard(
+    country: str = None,
+    limit: int = None,
+    skip: int = None,
+    ranked: bool = False,
     mongo_db: AsyncMongoClient = Depends(get_mongo_db),
 ):
-    return await mongo_db.get_leaderboard()
-
-
-@router.get("/ranked", response_model=list[LeaderboardResponseUser], summary="Get top users which are mentioned by ranked mappers")
-@cache(namespace=LEADERBOARD_CACHE_NAMESPACE, expire=LEADERBOARD_CACHE_EXPIRE)
-async def get_leaderboard(
-    mongo_db: AsyncMongoClient = Depends(get_mongo_db),
-):
-    return await mongo_db.get_ranked_leaderboard()
+    return await mongo_db.get_leaderboard(ranked, country, skip, limit)
