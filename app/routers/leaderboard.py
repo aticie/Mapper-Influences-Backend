@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from fastapi_cache.decorator import cache
 
-from app.db.mongo import AsyncMongoClient, get_mongo_db
+from app.db.instance import get_mongo_db, AsyncMongoClient
 
 LEADERBOARD_CACHE_EXPIRE = 60
 LEADERBOARD_CACHE_NAMESPACE = "leaderboard"

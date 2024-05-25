@@ -4,7 +4,8 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.config import settings
-from app.db.mongo import AsyncMongoClient, Beatmap, Influence, get_mongo_db
+from app.db import Beatmap, Influence
+from app.db.instance import get_mongo_db, AsyncMongoClient
 from app.utils.jwt import decode_jwt
 
 router = APIRouter(prefix="/influence", tags=["influence"])

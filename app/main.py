@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 
-from app.db.mongo import close_mongo_client, start_mongo_client
+from app.db.instance import close_mongo_client, start_mongo_client
 from app.routers import auth, influence, osu_api_full_response, user, leaderboard, osu_api
 from app.config import settings
 
