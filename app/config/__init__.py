@@ -18,8 +18,12 @@ class AuthSettings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
 
 
+class SentrySettings(BaseSettings):
+    SENTRY_DSN: str
+
+
 class Settings(
-    DatabaseSettings, APISettings, AuthSettings
+    DatabaseSettings, APISettings, AuthSettings, SentrySettings
 ):
     pass
 
