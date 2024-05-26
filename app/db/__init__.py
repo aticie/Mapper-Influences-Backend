@@ -15,17 +15,6 @@ class Beatmap(BaseModel):
     id: int
 
 
-class InfluenceDBModel(BaseModel):
-    influenced_by: int
-    influenced_to: int
-    created_at: datetime.datetime = datetime.datetime.now()
-    modified_at: datetime.datetime = datetime.datetime.now()
-    type: int = 1
-    description: Optional[str] = None
-    beatmaps: Optional[list[Beatmap]] = []
-    ranked: bool = False
-
-
 class _ObjectIdPydanticAnnotation:
     # Based on https://docs.pydantic.dev/latest/usage/types/custom/#handling-third-party-types.
 
@@ -42,7 +31,8 @@ class _ObjectIdPydanticAnnotation:
             [
                 # check if it's an instance first before doing any further work
                 core_schema.is_instance_schema(ObjectId),
-                core_schema.no_info_plain_validator_function(validate_from_str),
+                core_schema.no_info_plain_validator_function(
+                    validate_from_str),
             ],
             serialization=core_schema.to_string_ser_schema(),
         )
@@ -53,10 +43,20 @@ PydanticObjectId = Annotated[
 ]
 
 
+class InfluenceDBModel(BaseModel):
+    id: PydanticObjectId = Field(alias='_id')
+    influenced_by: int
+    influenced_to: int
+    created_at: datetime.datetime = datetime.datetime.now()
+    modified_at: datetime.datetime = datetime.datetime.now()
+    type: int = 1
+    description: Optional[str] = None
+    beatmaps: Optional[list[Beatmap]] = []
+    ranked: bool = False
+
+
 class InfluenceResponse(InfluenceDBModel):
     model_config = ConfigDict(populate_by_name=True)
-
-    id: PydanticObjectId = Field(alias='_id')
 
 
 class User(BaseModel):

@@ -20,7 +20,7 @@ class LeaderboardMongoClient(BaseAsyncMongoClient):
         ]
 
         if ranked:
-            pipeline.append({"$match": {"user.have_ranked_map": True}})
+            pipeline.append({"$match": {"ranked": True}})
 
         pipeline.append({"$group": {
             "_id": "$influenced_to",

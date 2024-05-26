@@ -29,13 +29,16 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
                             .to_list(length=None))
         user = await self.users_collection.find_one({"id": user_id})
         sorted_influences = influences.copy()
+        influences = [InfluenceDBModel(**influence)
+                      for influence in influences]
         if "influence_order" in user:
             influence_order = user["influence_order"]
             # Create a mapping of id to its order position
-            order_index = {inf_id: index for index, inf_id in enumerate(influence_order)}
-
+            order_index = {inf_id: index for index,
+                           inf_id in enumerate(influence_order)}
             # Sort the objects based on the order list
-            sorted_influences = sorted(influences, key=lambda inf: order_index[inf.id])
+            sorted_influences = sorted(
+                influences, key=lambda inf: order_index[str(inf.id)])
         logger.debug(f"User influences of {user_id}: {sorted_influences}")
         return sorted_influences
 
