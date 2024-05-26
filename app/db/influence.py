@@ -11,7 +11,7 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
     async def add_user_influence(self, influence: InfluenceDBModel):
         logger.debug(f"Adding influence: {influence}")
 
-        update_result = await self.influences_collection.update_one(
+        update_result = await self.influences_collection.find_one_and_update(
             {"influenced_by": influence.influenced_by,
              "influenced_to": influence.influenced_to},
             {"$set": influence.model_dump()},
@@ -21,11 +21,11 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
             {"id": influence.influenced_by,
              "influence_order": {"$exists": True}},
             {"$addToSet": {"influence_order": str(
-                update_result.upserted_id)}},
+                update_result["influenced_to"])}},
             upsert=True
         )
 
-        return update_result.upserted_id
+        return update_result["influenced_to"]
 
     async def remove_user_influence(self, influenced_by: int, influenced_to: int):
         logger.debug(f"Removing influence: {influenced_by} -> {influenced_to}")
@@ -35,7 +35,7 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
             {"id": influenced_by,
              "influence_order": {"$exists": True}},
             {"$pull": {"influence_order": str(
-                remove_result["_id"])}},
+                remove_result["influenced_to"])}},
             upsert=True
         )
 
