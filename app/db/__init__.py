@@ -60,6 +60,7 @@ class InfluenceResponse(InfluenceDBModel):
 
 
 class User(BaseModel):
+    id: int
     username: str
     avatar_url: str
     have_ranked_map: bool
