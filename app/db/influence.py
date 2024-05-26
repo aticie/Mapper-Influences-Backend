@@ -1,5 +1,7 @@
 import logging
 
+import pymongo
+
 from app.db import BaseAsyncMongoClient, InfluenceDBModel
 
 logger = logging.getLogger(__name__)
@@ -22,8 +24,9 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
 
     async def get_influences(self, user_id: int):
         logger.debug(f"Getting user influences of {user_id}")
-        influences = await self.influences_collection.find({"influenced_by": user_id}).to_list(
-            length=None)
+        influences = await (self.influences_collection.find({"influenced_by": user_id})
+                            .sort([("type", pymongo.DESCENDING), ("modified_at", pymongo.DESCENDING)])
+                            .to_list(length=None))
         user = await self.users_collection.find_one({"id": user_id})
         sorted_influences = influences.copy()
         if "influence_order" in user:
