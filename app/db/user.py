@@ -56,7 +56,7 @@ class UserMongoClient(BaseAsyncMongoClient):
     async def set_influence_order(self, user_id: int, influence_ids: list[int]):
         user_id_b64 = base64.b64encode(str(user_id).encode())
         influence_ids_b64 = [base64.b64encode(
-            inf_id.encode()) for inf_id in influence_ids]
+            str(inf_id).encode()) for inf_id in influence_ids]
         logger.debug(f"Setting influence order for {
                      user_id_b64=} to {influence_ids_b64=}.")
         await self.users_collection.update_one(
