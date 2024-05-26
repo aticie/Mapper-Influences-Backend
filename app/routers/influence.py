@@ -4,7 +4,7 @@ import aiohttp
 from fastapi import APIRouter, Cookie, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.db import Beatmap, InfluenceDBModel, InfluenceResponse
+from app.db import Beatmap, InfluenceDBModel
 from app.db.instance import get_mongo_db, AsyncMongoClient
 from app.utils.jwt import decode_jwt
 
@@ -24,7 +24,7 @@ def decode_user_token(
     return decode_jwt(user_token)
 
 
-@router.post("", summary="Adds an influence.", response_model=InfluenceResponse)
+@router.post("", summary="Adds an influence.", response_model=InfluenceDBModel)
 async def add_influence(
         influence_request: InfluenceRequest,
         user: Annotated[dict, Depends(decode_user_token)],
@@ -45,11 +45,10 @@ async def add_influence(
         raise HTTPException(status_code=404, detail="User not found on osu!")
     await mongo_db.create_user(user_osu)
     influence_id = await mongo_db.add_user_influence(influence=influence)
-    response = InfluenceResponse(**influence.model_dump(), id=influence_id)
-    return response
+    return influence
 
 
-@router.get("/{user_id}", response_model=list[InfluenceResponse],
+@router.get("/{user_id}", response_model=list[InfluenceDBModel],
             response_model_by_alias=False,
             summary="Get all influences of user")
 async def get_influences(
@@ -60,7 +59,7 @@ async def get_influences(
     return await mongo_db.get_influences(user_id)
 
 
-@router.get("/{user_id}/mentions", response_model=list[InfluenceResponse],
+@router.get("/{user_id}/mentions", response_model=list[InfluenceDBModel],
             response_model_by_alias=False,
             summary="Get all mentions of user, basically the opposite of influences")
 async def get_influences(

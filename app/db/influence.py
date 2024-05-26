@@ -15,16 +15,15 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
             {"influenced_by": influence.influenced_by,
              "influenced_to": influence.influenced_to},
             {"$set": influence.model_dump()},
-            upsert=True)
+            upsert=True, return_document=pymongo.ReturnDocument.AFTER)
 
         await self.users_collection.update_one(
             {"id": influence.influenced_by,
              "influence_order": {"$exists": True}},
-            {"$addToSet": {"influence_order": str(
-                update_result["influenced_to"])}},
+            {"$addToSet": {"influence_order":
+                           update_result["influenced_to"]}},
             upsert=True
         )
-
         return update_result["influenced_to"]
 
     async def remove_user_influence(self, influenced_by: int, influenced_to: int):
@@ -34,8 +33,8 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
         await self.users_collection.update_one(
             {"id": influenced_by,
              "influence_order": {"$exists": True}},
-            {"$pull": {"influence_order": str(
-                remove_result["influenced_to"])}},
+            {"$pull": {"influence_order":
+                       remove_result["influenced_to"]}},
             upsert=True
         )
 
@@ -54,8 +53,9 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
             order_index = {inf_id: index for index,
                            inf_id in enumerate(influence_order)}
             # Sort the objects based on the order list
+
             sorted_influences = sorted(
-                influences, key=lambda inf: order_index[str(inf["_id"])])
+                influences, key=lambda inf: order_index[inf["influenced_to"]])
         logger.debug(f"User influences of {user_id}: {sorted_influences}")
         return sorted_influences
 
