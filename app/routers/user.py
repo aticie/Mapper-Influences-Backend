@@ -76,7 +76,7 @@ async def remove_beatmap_from_user(
 
 @router.post("/influence-order",
              summary="Set the custom influence order for the current user")
-async def get_influences(
+async def save_custom_order(
         user: Annotated[dict, Depends(decode_user_token)],
         influence_order: InfluenceOrderRequest,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
