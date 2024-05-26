@@ -62,15 +62,15 @@ async def add_beatmap_to_user(
 @router.delete("/remove_beatmap/{type}/{id}", summary="Remove beatmap from user, type can be 'set' or 'diff'")
 async def remove_beatmap_from_user(
         user: Annotated[dict, Depends(decode_user_token)],
-        type: BeatmapIdType,
-        id: int,
+        beatmap_id_type: BeatmapIdType,
+        beatmap_id: int,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
     is_beatmapset = True
-    if type == BeatmapIdType.diff:
+    if beatmap_id_type == BeatmapIdType.diff:
         is_beatmapset = False
 
-    await mongo_db.remove_beatmap_from_user(user["id"], id, is_beatmapset)
+    await mongo_db.remove_beatmap_from_user(user["id"], beatmap_id, is_beatmapset)
     return
 
 
