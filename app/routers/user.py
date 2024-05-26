@@ -20,6 +20,10 @@ class RequestBio(BaseModel):
     bio: str
 
 
+class InfluenceOrderRequest(BaseModel):
+    influence_ids: list[str]
+
+
 @router.get("/me", response_model=User, summary="Gets registered user details from database")
 async def get_user_details(
         user: Annotated[dict, Depends(decode_user_token)],
@@ -68,6 +72,17 @@ async def remove_beatmap_from_user(
 
     await mongo_db.remove_beatmap_from_user(user["id"], id, is_beatmapset)
     return
+
+
+@router.post("/influence-order",
+             summary="Set the custom influence order for the current user")
+async def get_influences(
+        user: Annotated[dict, Depends(decode_user_token)],
+        influence_order: InfluenceOrderRequest,
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+):
+    user_id = user["id"]
+    return await mongo_db.set_influence_order(user_id, influence_order.influence_ids)
 
 
 async def get_user_data(user_id: int, mongo_db: AsyncMongoClient):

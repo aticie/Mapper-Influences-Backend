@@ -18,10 +18,6 @@ class InfluenceRequest(BaseModel):
     beatmaps: list[Beatmap] = []
 
 
-class InfluenceOrderRequest(BaseModel):
-    influence_ids: list[str]
-
-
 def decode_user_token(
         user_token: Annotated[str, Cookie()],
 ):
@@ -53,7 +49,7 @@ async def add_influence(
     return response
 
 
-@router.get("/get_influences/{user_id}", response_model=list[InfluenceResponse],
+@router.get("/{user_id}", response_model=list[InfluenceResponse],
             response_model_by_alias=False,
             summary="Get all influences of user")
 async def get_influences(
@@ -64,7 +60,7 @@ async def get_influences(
     return await mongo_db.get_influences(user_id)
 
 
-@router.get("/get_mentions/{user_id}", response_model=list[InfluenceResponse],
+@router.get("/{user_id}/mentions", response_model=list[InfluenceResponse],
             response_model_by_alias=False,
             summary="Get all mentions of user, basically the opposite of influences")
 async def get_influences(
@@ -75,7 +71,7 @@ async def get_influences(
     return await mongo_db.get_mentions(user_id)
 
 
-@router.delete("/remove_influence/{influenced_to}", summary="Remove influence")
+@router.delete("/{influenced_to}", summary="Remove influence from the current user")
 async def remove_influence(
         user: Annotated[dict, Depends(decode_user_token)],
         influenced_to: int,

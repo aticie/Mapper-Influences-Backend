@@ -36,13 +36,13 @@ class UserMongoClient(BaseAsyncMongoClient):
         return db_user
 
     async def update_user_bio(self, user_id: int, bio: str):
-        logger.debug(f"Updating user bio of {user_id}: {
-                     base64.b64encode(bio.encode('UTF-8'))}")
+        logger.debug(f"Updating user bio of {user_id}: {base64.b64encode(bio.encode('UTF-8'))}")
         await self.users_collection.update_one({"id": user_id}, {"$set": {"bio": bio}}, upsert=True)
 
     async def add_beatmap_to_user(self, user_id: int, beatmap: Beatmap):
         logger.debug(f"Adding beatmap to user {user_id}: {beatmap}")
-        await self.users_collection.update_one({"id": user_id}, {"$push": {"beatmaps": beatmap.model_dump()}}, upsert=True)
+        await self.users_collection.update_one({"id": user_id}, {"$push": {"beatmaps": beatmap.model_dump()}},
+                                               upsert=True)
 
     async def remove_beatmap_from_user(self, user_id: int, beatmap_id: int, is_beatmapset: bool):
         beatmap = Beatmap(is_beatmapset=is_beatmapset, id=beatmap_id)
@@ -50,4 +50,11 @@ class UserMongoClient(BaseAsyncMongoClient):
         await self.users_collection.update_one(
             {"id": user_id},
             {"$pull": {"beatmaps": beatmap.model_dump()}}
+        )
+
+    async def set_influence_order(self, user_id: int, influence_ids: list[str]):
+        logger.debug(f"Setting influence order for {user_id=} to {influence_ids=}.")
+        await self.users_collection.update_one(
+            {"id": user_id},
+            {"$set": {"influence_order": influence_ids}}
         )
