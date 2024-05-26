@@ -10,17 +10,36 @@ logger = logging.getLogger(__name__)
 class InfluenceMongoClient(BaseAsyncMongoClient):
     async def add_user_influence(self, influence: InfluenceDBModel):
         logger.debug(f"Adding influence: {influence}")
+
         update_result = await self.influences_collection.update_one(
             {"influenced_by": influence.influenced_by,
              "influenced_to": influence.influenced_to},
             {"$set": influence.model_dump()},
             upsert=True)
+
+        await self.users_collection.update_one(
+            {"id": influence.influenced_by,
+             "influence_order": {"$exists": True}},
+            {"$addToSet": {"influence_order": str(
+                update_result.upserted_id)}},
+            upsert=True
+        )
+
         return update_result.upserted_id
 
     async def remove_user_influence(self, influenced_by: int, influenced_to: int):
         logger.debug(f"Removing influence: {influenced_by} -> {influenced_to}")
-        return await self.influences_collection.delete_one(
+        remove_result = await self.influences_collection.find_one_and_delete(
             {"influenced_by": influenced_by, "influenced_to": influenced_to})
+        await self.users_collection.update_one(
+            {"id": influenced_by,
+             "influence_order": {"$exists": True}},
+            {"$pull": {"influence_order": str(
+                remove_result["_id"])}},
+            upsert=True
+        )
+
+        return
 
     async def get_influences(self, user_id: int):
         logger.debug(f"Getting user influences of {user_id}")

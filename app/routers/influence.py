@@ -45,7 +45,7 @@ async def add_influence(
         raise HTTPException(status_code=404, detail="User not found on osu!")
     await mongo_db.create_user(user_osu)
     influence_id = await mongo_db.add_user_influence(influence=influence)
-    response = InfluenceResponse(**influence.dict(), id=influence_id)
+    response = InfluenceResponse(**influence.model_dump(), id=influence_id)
     return response
 
 
