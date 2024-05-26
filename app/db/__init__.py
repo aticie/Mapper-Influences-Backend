@@ -44,7 +44,6 @@ PydanticObjectId = Annotated[
 
 
 class InfluenceDBModel(BaseModel):
-    id: PydanticObjectId = Field(alias='_id')
     influenced_by: int
     influenced_to: int
     created_at: datetime.datetime = datetime.datetime.now()
@@ -56,6 +55,7 @@ class InfluenceDBModel(BaseModel):
 
 
 class InfluenceResponse(InfluenceDBModel):
+    id: PydanticObjectId = Field(alias='_id')
     model_config = ConfigDict(populate_by_name=True)
 
 
