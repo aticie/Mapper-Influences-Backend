@@ -54,6 +54,7 @@ async def add_influence(
 
 
 @router.get("/get_influences/{user_id}", response_model=list[InfluenceResponse],
+            response_model_by_alias=False,
             summary="Get all influences of user")
 async def get_influences(
         _: Annotated[dict, Depends(decode_user_token)],
@@ -64,6 +65,7 @@ async def get_influences(
 
 
 @router.get("/get_mentions/{user_id}", response_model=list[InfluenceResponse],
+            response_model_by_alias=False,
             summary="Get all mentions of user, basically the opposite of influences")
 async def get_influences(
         _: Annotated[dict, Depends(decode_user_token)],

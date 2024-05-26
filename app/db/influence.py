@@ -22,14 +22,14 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
 
     async def get_influences(self, user_id: int):
         logger.debug(f"Getting user influences of {user_id}")
-        influences = await self.influences_collection.find({"influenced_by": user_id}, {"_id": False}).to_list(
+        influences = await self.influences_collection.find({"influenced_by": user_id}).to_list(
             length=None)
         logger.debug(f"User influences of {user_id}: {influences}")
         return influences
 
     async def get_mentions(self, user_id: int):
         logger.debug(f"Getting user mentions of {user_id}")
-        mentions = await self.influences_collection.find({"influenced_to": user_id}, {"_id": False}).to_list(
+        mentions = await self.influences_collection.find({"influenced_to": user_id}).to_list(
             length=None)
         logger.debug(f"User mentions of {user_id}: {mentions}")
         return mentions
