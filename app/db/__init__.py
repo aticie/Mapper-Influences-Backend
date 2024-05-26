@@ -1,10 +1,11 @@
-
-
 import datetime
 import logging
-from typing import Optional
-from pydantic import BaseModel
+from typing import Optional, Annotated, Any, Callable
+
+from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel, Field, ConfigDict
+from pydantic_core import core_schema
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ class Beatmap(BaseModel):
     id: int
 
 
-class Influence(BaseModel):
+class InfluenceDBModel(BaseModel):
     influenced_by: int
     influenced_to: int
     created_at: datetime.datetime = datetime.datetime.now()

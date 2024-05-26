@@ -20,6 +20,10 @@ class RequestBio(BaseModel):
     bio: str
 
 
+class InfluenceOrderRequest(BaseModel):
+    influence_ids: list[int]
+
+
 @router.get("/me", response_model=User, summary="Gets registered user details from database")
 async def get_user_details(
         user: Annotated[dict, Depends(decode_user_token)],
@@ -55,20 +59,30 @@ async def add_beatmap_to_user(
     return
 
 
-@router.delete("/remove_beatmap/{type}/{id}", summary="Remove beatmap from user, type can be 'set' or 'diff'")
+@router.delete("/remove_beatmap/{beatmap_id_type}/{beatmap_id}", summary="Remove beatmap from user, type can be 'set' or 'diff'")
 async def remove_beatmap_from_user(
         user: Annotated[dict, Depends(decode_user_token)],
-        type: BeatmapIdType,
-        id: int,
+        beatmap_id_type: BeatmapIdType,
+        beatmap_id: int,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
-    if type == BeatmapIdType.set:
-        is_beatmapset = True
-    elif type == BeatmapIdType.diff:
+    is_beatmapset = True
+    if beatmap_id_type == BeatmapIdType.diff:
         is_beatmapset = False
 
-    await mongo_db.remove_beatmap_from_user(user["id"], id, is_beatmapset)
+    await mongo_db.remove_beatmap_from_user(user["id"], beatmap_id, is_beatmapset)
     return
+
+
+@router.post("/influence-order",
+             summary="Set the custom influence order for the current user")
+async def save_custom_order(
+        user: Annotated[dict, Depends(decode_user_token)],
+        influence_order: InfluenceOrderRequest,
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+):
+    user_id = user["id"]
+    return await mongo_db.set_influence_order(user_id, influence_order.influence_ids)
 
 
 async def get_user_data(user_id: int, mongo_db: AsyncMongoClient):
