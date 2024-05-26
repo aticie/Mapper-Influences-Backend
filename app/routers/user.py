@@ -62,9 +62,8 @@ async def remove_beatmap_from_user(
         id: int,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db)
 ):
-    if type == BeatmapIdType.set:
-        is_beatmapset = True
-    elif type == BeatmapIdType.diff:
+    is_beatmapset = True
+    if type == BeatmapIdType.diff:
         is_beatmapset = False
 
     await mongo_db.remove_beatmap_from_user(user["id"], id, is_beatmapset)

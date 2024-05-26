@@ -35,8 +35,7 @@ async def lifespan(app: FastAPI):
     close_mongo_client()
 
 
-app = FastAPI(lifespan=lifespan,
-              )
+app = FastAPI(lifespan=lifespan)
 origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
