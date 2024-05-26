@@ -36,7 +36,8 @@ class UserMongoClient(BaseAsyncMongoClient):
         return db_user
 
     async def update_user_bio(self, user_id: int, bio: str):
-        logger.debug(f"Updating user bio of {user_id}: {base64.b64encode(bio.encode('UTF-8'))}")
+        logger.debug(f"Updating user bio of {user_id}: {
+                     base64.b64encode(bio.encode('UTF-8'))}")
         await self.users_collection.update_one({"id": user_id}, {"$set": {"bio": bio}}, upsert=True)
 
     async def add_beatmap_to_user(self, user_id: int, beatmap: Beatmap):
@@ -53,7 +54,8 @@ class UserMongoClient(BaseAsyncMongoClient):
         )
 
     async def set_influence_order(self, user_id: int, influence_ids: list[str]):
-        logger.debug(f"Setting influence order for {user_id=} to {influence_ids=}.")
+        logger.debug(f"Setting influence order for user_id={base64.b64encode(user_id.encode(
+            'UTF-8'))} to influence_ids={base64.b64encode(influence_ids.encode('UTF-8'))}.")
         await self.users_collection.update_one(
             {"id": user_id},
             {"$set": {"influence_order": influence_ids}}
