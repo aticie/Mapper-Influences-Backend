@@ -36,7 +36,7 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
                            inf_id in enumerate(influence_order)}
             # Sort the objects based on the order list
             sorted_influences = sorted(
-                influences, key=lambda inf: order_index[str(inf["id"])])
+                influences, key=lambda inf: order_index[str(inf["_id"])])
         logger.debug(f"User influences of {user_id}: {sorted_influences}")
         return sorted_influences
 
