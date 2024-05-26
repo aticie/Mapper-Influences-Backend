@@ -64,7 +64,6 @@ class User(BaseModel):
     username: str
     avatar_url: str
     have_ranked_map: bool
-    id: int
     bio: Optional[str] = None
     beatmaps: Optional[list[Beatmap]] = []
     mention_count: Optional[int] = None
