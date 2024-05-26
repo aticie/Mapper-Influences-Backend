@@ -21,7 +21,7 @@ class RequestBio(BaseModel):
 
 
 class InfluenceOrderRequest(BaseModel):
-    influence_ids: list[str]
+    influence_ids: list[int]
 
 
 @router.get("/me", response_model=User, summary="Gets registered user details from database")
