@@ -19,7 +19,12 @@ class LeaderboardResponseUser(BaseModel):
     mention_count: int
 
 
-@router.get("", response_model=list[LeaderboardResponseUser], summary="Get top users which are most mentioned by others")
+class LeaderboardResponse(BaseModel):
+    data: list[LeaderboardResponseUser]
+    count: int
+
+
+@router.get("", response_model=LeaderboardResponse, summary="Get top users which are most mentioned by others")
 @cache(namespace=LEADERBOARD_CACHE_NAMESPACE, expire=LEADERBOARD_CACHE_EXPIRE)
 async def get_leaderboard(
     country: str = None,

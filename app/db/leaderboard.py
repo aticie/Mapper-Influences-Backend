@@ -46,7 +46,13 @@ class LeaderboardMongoClient(BaseAsyncMongoClient):
         if country_code is not None:
             pipeline.append({"$match": {"country": country_code}})
 
-        pipeline.append({"$limit": (skip or 0) + (limit or 25)})
-        pipeline.append({"$skip": skip or 0})
+        pipeline.append({"$facet": {
+            "count": [{"$count": "total"}],
+            "data": [{"$limit": (skip or 0) + (limit or 25)}, {"$skip": skip or 0}]
 
-        return await self.influences_collection.aggregate(pipeline).to_list(length=None)
+        }})
+
+        result = self.influences_collection.aggregate(pipeline)
+        async for doc in result:
+            doc["count"] = doc["count"][0]["total"]
+            return doc
