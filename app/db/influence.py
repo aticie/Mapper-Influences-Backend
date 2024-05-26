@@ -24,8 +24,17 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
         logger.debug(f"Getting user influences of {user_id}")
         influences = await self.influences_collection.find({"influenced_by": user_id}).to_list(
             length=None)
-        logger.debug(f"User influences of {user_id}: {influences}")
-        return influences
+        user = await self.users_collection.find_one({"id": user_id})
+        sorted_influences = influences.copy()
+        if "influence_order" in user:
+            influence_order = user["influence_order"]
+            # Create a mapping of id to its order position
+            order_index = {inf_id: index for index, inf_id in enumerate(influence_order)}
+
+            # Sort the objects based on the order list
+            sorted_influences = sorted(influences, key=lambda inf: order_index[inf.id])
+        logger.debug(f"User influences of {user_id}: {sorted_influences}")
+        return sorted_influences
 
     async def get_mentions(self, user_id: int):
         logger.debug(f"Getting user mentions of {user_id}")
