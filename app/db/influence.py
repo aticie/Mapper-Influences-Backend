@@ -20,8 +20,14 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
         await self.users_collection.update_one(
             {"id": influence.influenced_by,
              "influence_order": {"$exists": True}},
-            {"$addToSet": {"influence_order":
-                           update_result["influenced_to"]}},
+            {
+                "$push": {
+                    "influence_order": {
+                        "$each": [update_result["influenced_to"]],
+                        "$position": 0
+                    }
+                }
+            },
             upsert=True
         )
         return update_result["influenced_to"]
