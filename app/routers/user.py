@@ -59,7 +59,7 @@ async def add_beatmap_to_user(
     return
 
 
-@router.delete("/remove_beatmap/{type}/{id}", summary="Remove beatmap from user, type can be 'set' or 'diff'")
+@router.delete("/remove_beatmap/{beatmap_id_type}/{beatmap_id}", summary="Remove beatmap from user, type can be 'set' or 'diff'")
 async def remove_beatmap_from_user(
         user: Annotated[dict, Depends(decode_user_token)],
         beatmap_id_type: BeatmapIdType,
