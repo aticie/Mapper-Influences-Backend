@@ -17,20 +17,22 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
             {"$set": influence.model_dump()},
             upsert=True, return_document=pymongo.ReturnDocument.AFTER)
 
-        await self.users_collection.update_one(
-            {"id": influence.influenced_by,
-             "influence_order": {"$exists": True}},
-            {
-                "$push": {
-                    "influence_order": {
-                        "$each": [update_result["influenced_to"]],
-                        "$position": 0
+        if update_result is not None:
+
+            await self.users_collection.update_one(
+                {"id": influence.influenced_by,
+                 "influence_order": {"$exists": True}},
+                {
+                    "$push": {
+                        "influence_order": {
+                            "$each": [update_result["influenced_to"]],
+                            "$position": 0
+                        }
                     }
-                }
-            },
-            upsert=True
-        )
-        return update_result["influenced_to"]
+                },
+                upsert=True
+            )
+            return update_result["influenced_to"]
 
     async def remove_user_influence(self, influenced_by: int, influenced_to: int):
         logger.debug(f"Removing influence: {influenced_by} -> {influenced_to}")
