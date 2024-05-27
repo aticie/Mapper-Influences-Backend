@@ -55,7 +55,7 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
                             .to_list(length=None))
         user = await self.users_collection.find_one({"id": user_id})
         sorted_influences = influences.copy()
-        if "influence_order" in user:
+        if user is not None and "influence_order" in user:
             influence_order = user["influence_order"]
             # Create a mapping of id to its order position
             order_index = {inf_id: index for index,
