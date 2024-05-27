@@ -53,6 +53,10 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
         influences = await (self.influences_collection.find({"influenced_by": user_id})
                             .sort([("type", pymongo.DESCENDING), ("modified_at", pymongo.DESCENDING)])
                             .to_list(length=None))
+        
+        if len(influences) == 0:
+            return influences
+        
         user = await self.users_collection.find_one({"id": user_id})
         sorted_influences = influences.copy()
         if user is not None and "influence_order" in user:
