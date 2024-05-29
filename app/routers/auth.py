@@ -1,12 +1,13 @@
 from datetime import timedelta
 import logging
-import aiohttp
+from aiohttp import ClientSession
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import RedirectResponse
 
 from app.config import settings
 from app.db.instance import get_mongo_db, AsyncMongoClient
 from app.utils.jwt import obtain_jwt
+from app.utils.request_session import get_request_session
 
 logger = logging.getLogger(__name__)
 
@@ -16,12 +17,13 @@ router = APIRouter(prefix="/oauth", tags=["oauth"])
 @router.get("/osu-redirect", summary="Handles OAuth redirect from osu!.")
 async def osu_oauth2_redirect(
         code: str,
-        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db),
+        request_session: ClientSession = Depends(get_request_session)
 ):
 
     redirect_response = RedirectResponse(settings.POST_LOGIN_REDIRECT_URI)
-    access_token = await get_osu_auth_token(code=code)
-    user = await get_osu_user(access_token["access_token"])
+    access_token = await get_osu_auth_token(request_session, code=code)
+    user = await get_osu_user(request_session, access_token["access_token"])
     await mongo_db.add_real_user(user)
     db_user = await mongo_db.create_user(user_details=user)
     db_user["access_token"] = access_token["access_token"]
@@ -39,25 +41,24 @@ async def logout(response: Response):
     return
 
 
-async def get_osu_user(access_token: str):
+async def get_osu_user(session: ClientSession, access_token: str):
     me_url = "https://osu.ppy.sh/api/v2/me"
     auth_header = {"Authorization": f"Bearer {access_token}"}
-    async with aiohttp.ClientSession(headers=auth_header) as session:
-        async with session.get(me_url) as response:
-            return await response.json()
+    async with session.get(me_url, headers=auth_header) as response:
+        return await response.json()
 
 
-async def get_osu_auth_token(code: str):
+async def get_osu_auth_token(session: ClientSession, code: str):
     token_url = "https://osu.ppy.sh/oauth/token"
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-                token_url,
-                json={
-                    "client_id": settings.OSU_CLIENT_ID,
-                    "client_secret": settings.OSU_CLIENT_SECRET,
-                    "code": code,
-                    "grant_type": "authorization_code",
-                    "redirect_uri": settings.OSU_REDIRECT_URI,
-                },
-        ) as response:
-            return await response.json()
+
+    async with session.post(
+        token_url,
+        json={
+            "client_id": settings.OSU_CLIENT_ID,
+            "client_secret": settings.OSU_CLIENT_SECRET,
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": settings.OSU_REDIRECT_URI,
+        },
+    ) as response:
+        return await response.json()
