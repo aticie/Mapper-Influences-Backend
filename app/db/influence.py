@@ -41,8 +41,7 @@ class InfluenceMongoClient(BaseAsyncMongoClient):
             {"id": influenced_by,
              "influence_order": {"$exists": True}},
             {"$pull": {"influence_order":
-                       remove_result["influenced_to"]}},
-            upsert=True
+                       remove_result["influenced_to"]}}
         )
 
         return
