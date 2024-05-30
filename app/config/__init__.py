@@ -22,8 +22,12 @@ class SentrySettings(BaseSettings):
     SENTRY_DSN: str
 
 
+class TestSettings(BaseSettings):
+    TEST_USER_ID: str
+
+
 class Settings(
-    DatabaseSettings, APISettings, AuthSettings, SentrySettings
+    DatabaseSettings, APISettings, AuthSettings, SentrySettings, TestSettings
 ):
     pass
 

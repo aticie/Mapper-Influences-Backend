@@ -9,3 +9,6 @@ aiohttp==3.9.5
 pycryptodome==3.20.0
 fastapi-cache2[memcache]==0.2.1
 sentry-sdk[fastapi]==2.3.1
+httpx==0.27.0
+pytest==8.2.1
+pytest-asyncio==0.23.7 
