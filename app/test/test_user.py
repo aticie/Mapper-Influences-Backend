@@ -1,8 +1,4 @@
-from httpx import AsyncClient
 import pytest
-
-from ..main import app
-from app.config import settings
 
 
 @pytest.mark.asyncio
@@ -12,6 +8,6 @@ async def test_set_user_bio(test_client, headers):
 
 
 @pytest.mark.asyncio
-async def test_get_user(test_client, headers):
-    response = await test_client.get(f"users/{settings.TEST_USER_ID}", headers=headers)
+async def test_get_user(test_client, headers, test_user_id):
+    response = await test_client.get(f"users/{test_user_id}", headers=headers)
     assert response.status_code == 200

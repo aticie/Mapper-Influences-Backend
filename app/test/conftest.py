@@ -31,6 +31,7 @@ async def get_osu_credentials_grant_token():
 
 async def get_authentication_jwt():
     access_token = await get_osu_credentials_grant_token()
+    # Can't get /me endpoint to work with client credentials grant type.
     user_details = await get_user_osu(access_token["access_token"], settings.TEST_USER_ID)
     user = {
         "id": user_details["id"],
@@ -74,3 +75,8 @@ def headers():
 @pytest.fixture(scope='session', autouse=True)
 def test_client():
     yield AsyncClient(app=app, base_url="http://test")
+
+
+@pytest.fixture(scope='session', autouse=True)
+def test_user_id():
+    yield settings.TEST_USER_ID
