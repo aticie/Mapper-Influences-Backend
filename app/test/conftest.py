@@ -74,7 +74,7 @@ def headers():
 
 @pytest.fixture(scope='session', autouse=True)
 def test_client():
-    yield AsyncClient(app=app, base_url="http://test")
+    yield AsyncClient(app=app, base_url="https://test")
 
 
 @pytest.fixture(scope='session', autouse=True)
