@@ -3,6 +3,16 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      MONGODB_URL: "mongodb://root:example@localhost:27017"
+      TEST_USER_ID: "3953470"
+      SENTRY_DSN: ""
+      JWT_SECRET_KEY: "verysecretkey"
+      OSU_CLIENT_ID: "${{ secrets.OSU_CLIENT_ID }}"
+      OSU_CLIENT_SECRET: "${{ secrets.OSU_CLIENT_SECRET }}"
+      OSU_REDIRECT_URI: "http://localhost:8000/oauth/osu-redirect"
+      POST_LOGIN_REDIRECT_URI: "http://localhost:3000/dashboard"
+
     steps:
       - uses: actions/checkout@v4
       - name: Start MongoDB
