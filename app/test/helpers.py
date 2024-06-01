@@ -53,3 +53,16 @@ async def add_fake_user_to_db(mongo_db, user_id, test_name: str = "test"):
         "have_ranked_map": True,
     }
     await mongo_db.users_collection.update_one({"id": user_details["id"]}, {"$set": user_details}, upsert=True)
+
+
+async def add_fake_influence_to_db(mongo_db, influenced_by, influenced_to):
+    '''To be able to test mentions endpoint'''
+    influence = {
+        "influenced_by": influenced_by,
+        "influenced_to": influenced_to,
+        "description": "test",
+        "beatmaps": None,
+        "type": 1,
+        "ranked": True,
+    }
+    await mongo_db.influences_collection.insert_one(influence)

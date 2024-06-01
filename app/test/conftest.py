@@ -49,4 +49,4 @@ def test_client():
 
 @pytest.fixture(scope='session', autouse=True)
 def test_user_id():
-    yield settings.TEST_USER_ID
+    yield int(settings.TEST_USER_ID)
