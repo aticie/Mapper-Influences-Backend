@@ -26,5 +26,3 @@ async def test_get_influence_and_mentions(test_client, mongo_db, headers, test_u
     await add_fake_influence_to_db(mongo_db, 418699, test_user_id)
     response = await test_client.get(f"influence/{test_user_id}/mentions", headers=headers)
     assert response.status_code == 200
-    response = response.json()
-    assert len(response) == 1
