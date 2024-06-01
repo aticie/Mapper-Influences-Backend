@@ -6,7 +6,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Start MongoDB
-        run: docker-compose up mongo -d
+        uses: supercharge/mongodb-github-action@1.11.0
+        with:
+          mongodb-port: 27017
+          mongodb-username: root
+          mongodb-password: example
 
       - name: Setup Python
         uses: actions/setup-python@v5
