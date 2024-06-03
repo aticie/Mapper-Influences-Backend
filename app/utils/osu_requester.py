@@ -1,13 +1,9 @@
-
-
-import threading
 import asyncio
-from datetime import datetime
-import json
 import logging
 import os
 import aiohttp
 from fastapi import HTTPException
+from Crypto.Hash import SHA256
 
 from app.config import settings
 
@@ -61,7 +57,7 @@ class Requester:
 
         os.makedirs(self.test_path, exist_ok=True)
         file_path = os.path.join(
-            self.test_path, f"{method}-{url.replace("/", "-")}.json")
+            self.test_path, f"{method}-{hash_url(url)}.json")
         if os.path.exists(file_path):
             with open(file_path, 'r', encoding='utf-8') as json_file:
                 existing_data = type.model_validate_json(
@@ -106,3 +102,7 @@ async def get_osu_credentials_grant_token():
                 },
         ) as response:
             return await response.json()
+
+
+def hash_url(url: str):
+    return SHA256.new(data=str.encode(url)).hexdigest()

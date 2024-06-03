@@ -1,7 +1,6 @@
 from typing import Annotated, Optional
 import logging
-import aiohttp
-from fastapi import APIRouter, Depends, HTTPException, Cookie, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Cookie, Request
 from fastapi_cache.decorator import cache
 from pydantic import BaseModel
 

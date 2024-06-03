@@ -2,7 +2,7 @@
 from datetime import timedelta
 import aiohttp
 
-from app.utils.jwt import decode_jwt, obtain_jwt
+from app.utils.jwt import obtain_jwt
 from app.config import settings
 
 

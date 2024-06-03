@@ -1,6 +1,5 @@
 import asyncio
 from contextlib import asynccontextmanager
-import os
 from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
 from fastapi_cache import FastAPICache
