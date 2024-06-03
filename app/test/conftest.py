@@ -64,5 +64,5 @@ async def lifespan_manager():
 
 @pytest_asyncio.fixture
 async def test_client(lifespan_manager):
-    async with AsyncClient(app=lifespan_manager, base_url="http://test") as client:
+    async with AsyncClient(app=lifespan_manager, base_url="https://test") as client:
         yield client
