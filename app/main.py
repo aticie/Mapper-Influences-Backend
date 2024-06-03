@@ -11,6 +11,7 @@ import sentry_sdk
 from app.db.instance import close_mongo_client, start_mongo_client
 from app.routers import auth, influence, osu_api_full_response, user, leaderboard, osu_api
 from app.config import settings
+from app.utils.osu_requester import Requester
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +30,12 @@ sentry_sdk.init(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    requester = await Requester.get_instance()
     start_mongo_client(settings.MONGODB_URL)
     FastAPICache.init(InMemoryBackend())
     yield
     close_mongo_client()
+    await requester.close()
 
 
 app = FastAPI(lifespan=lifespan)

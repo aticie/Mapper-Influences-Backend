@@ -6,7 +6,9 @@ from pydantic import BaseModel
 
 from app.db import Beatmap, InfluenceDBModel
 from app.db.instance import get_mongo_db, AsyncMongoClient
+from app.routers.osu_api import get_user_osu_parsed
 from app.utils.jwt import decode_jwt
+from app.utils.osu_requester import Requester
 
 router = APIRouter(prefix="/influence", tags=["influence"])
 
@@ -28,7 +30,8 @@ def decode_user_token(
 async def add_influence(
         influence_request: InfluenceRequest,
         user: Annotated[dict, Depends(decode_user_token)],
-        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db),
+        requester: Requester = Depends(Requester.get_instance)
 ):
     db_user = await mongo_db.get_user_details(user["id"])
     influence = InfluenceDBModel(
@@ -39,7 +42,7 @@ async def add_influence(
         type=influence_request.type,
         ranked=db_user["have_ranked_map"]
     )
-    user_osu = await get_user_osu(user["access_token"], influence.influenced_to)
+    user_osu = await get_user_osu_parsed(requester, user["access_token"], influence.influenced_to)
     # TODO do better error handling here
     if "error" in user_osu:
         raise HTTPException(status_code=404, detail="User not found on osu!")
@@ -78,11 +81,3 @@ async def remove_influence(
 ):
     await mongo_db.remove_user_influence(user["id"], influenced_to)
     return
-
-
-async def get_user_osu(access_token: str, user_id: int):
-    user_url = f"https://osu.ppy.sh/api/v2/users/{user_id}"
-    auth_header = {"Authorization": f"Bearer {access_token}"}
-    async with aiohttp.ClientSession(headers=auth_header) as session:
-        async with session.get(user_url) as response:
-            return await response.json()

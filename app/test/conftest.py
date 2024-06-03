@@ -1,8 +1,15 @@
 import asyncio
+from contextlib import asynccontextmanager
+import os
+from asgi_lifespan import LifespanManager
+from fastapi import FastAPI
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 from httpx import AsyncClient
 import pytest
+import pytest_asyncio
+
+from app.utils.osu_requester import Requester
 
 from ..main import app
 from app.test.helpers import add_fake_user_to_db, get_authentication_jwt
@@ -10,8 +17,6 @@ from app.config import settings
 from app.db.instance import close_mongo_client, get_mongo_db, start_mongo_client
 
 
-# pytest warning says that this is deprecated.
-# But I can't find a better way to fix event loop closed error.
 @pytest.fixture(scope="session")
 def event_loop():
     try:
@@ -22,31 +27,43 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope='session', autouse=True)
-def setup():
-    FastAPICache.init(InMemoryBackend())
-    yield
+@pytest_asyncio.fixture(scope="session")
+async def headers():
+    jwt = await get_authentication_jwt()
+    headers = {"Cookie": f"user_token={jwt}"}
+    yield headers
 
 
-@pytest.fixture(scope='session', autouse=True)
-def mongo_db():
+@pytest_asyncio.fixture(scope="session")
+async def test_user_id():
+    yield int(settings.TEST_USER_ID)
+
+
+@pytest_asyncio.fixture(scope="session")
+async def mongo_db():
     start_mongo_client(settings.MONGODB_URL)
     yield get_mongo_db()
     close_mongo_client()
 
 
-@pytest.fixture(scope='session', autouse=True)
-def headers():
-    jwt = asyncio.run(get_authentication_jwt())
-    headers = {"Cookie": f"user_token={jwt}"}
-    yield headers
+@pytest_asyncio.fixture
+async def lifespan_manager():
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        requester = await Requester.get_instance("app/test/data")
+        start_mongo_client(settings.MONGODB_URL)
+        FastAPICache.init(InMemoryBackend())
+        yield
+        close_mongo_client()
+        await requester.close()
+
+    app.router.lifespan_context = lifespan
+
+    async with LifespanManager(app) as manager:
+        yield manager.app
 
 
-@pytest.fixture(scope='session', autouse=True)
-def test_client():
-    yield AsyncClient(app=app, base_url="https://test")
-
-
-@pytest.fixture(scope='session', autouse=True)
-def test_user_id():
-    yield int(settings.TEST_USER_ID)
+@pytest_asyncio.fixture
+async def test_client(lifespan_manager):
+    async with AsyncClient(app=lifespan_manager, base_url="http://test") as client:
+        yield client

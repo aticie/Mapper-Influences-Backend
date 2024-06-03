@@ -2,14 +2,15 @@ import base64
 import logging
 from typing import Any
 from app.db import BaseAsyncMongoClient, Beatmap
+from app.routers.osu_api import UserOsu
 
 logger = logging.getLogger(__name__)
 
 
-def has_ranked_beatmapsets(user_data) -> bool:
-    final_count = user_data["ranked_beatmapset_count"]
-    final_count += user_data["loved_beatmapset_count"]
-    final_count += user_data["guest_beatmapset_count"]
+def has_ranked_beatmapsets(user_data: UserOsu) -> bool:
+    final_count = user_data.ranked_beatmapset_count
+    final_count += user_data.loved_beatmapset_count
+    final_count += user_data.guest_beatmapset_count
     return final_count > 0
 
 
@@ -18,21 +19,17 @@ class UserMongoClient(BaseAsyncMongoClient):
         logger.debug(f"Getting user influences of {user_id}")
         return await self.users_collection.find_one({"id": user_id}, {"_id": False})
 
-    async def create_user(self, user_details: dict[str, Any]):
-        assert "avatar_url" in user_details
-        assert "id" in user_details
-        assert "username" in user_details
-        assert "country" in user_details
+    async def create_user(self, user_details: UserOsu):
 
         db_user = {
-            "id": user_details["id"],
-            "avatar_url": user_details["avatar_url"],
-            "username": user_details["username"],
-            "country": user_details["country"]["code"],
+            "id": user_details.id,
+            "avatar_url": user_details.avatar_url,
+            "username": user_details.username,
+            "country": user_details.country.code,
             "have_ranked_map": has_ranked_beatmapsets(user_details),
         }
         logger.debug(f"Upserting user: {db_user}")
-        await self.users_collection.update_one({"id": user_details["id"]}, {"$set": db_user}, upsert=True)
+        await self.users_collection.update_one({"id": user_details.id}, {"$set": db_user}, upsert=True)
         return db_user
 
     async def update_user_bio(self, user_id: int, bio: str):
