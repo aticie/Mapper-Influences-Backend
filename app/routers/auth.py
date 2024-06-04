@@ -6,7 +6,9 @@ from fastapi.responses import RedirectResponse
 
 from app.config import settings
 from app.db.instance import get_mongo_db, AsyncMongoClient
+from app.routers.osu_api import UserOsu
 from app.utils.jwt import obtain_jwt
+from app.utils.osu_requester import Requester
 
 logger = logging.getLogger(__name__)
 
@@ -16,12 +18,13 @@ router = APIRouter(prefix="/oauth", tags=["oauth"])
 @router.get("/osu-redirect", summary="Handles OAuth redirect from osu!.")
 async def osu_oauth2_redirect(
         code: str,
-        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db),
+        requester: Requester = Depends(Requester.get_instance)
 ):
 
     redirect_response = RedirectResponse(settings.POST_LOGIN_REDIRECT_URI)
     access_token = await get_osu_auth_token(code=code)
-    user = await get_osu_user(access_token["access_token"])
+    user = await get_osu_user(requester, access_token["access_token"])
     await mongo_db.add_real_user(user)
     db_user = await mongo_db.create_user(user_details=user)
     db_user["access_token"] = access_token["access_token"]
@@ -39,12 +42,10 @@ async def logout(response: Response):
     return
 
 
-async def get_osu_user(access_token: str):
+async def get_osu_user(requester, access_token: str):
     me_url = "https://osu.ppy.sh/api/v2/me"
     auth_header = {"Authorization": f"Bearer {access_token}"}
-    async with aiohttp.ClientSession(headers=auth_header) as session:
-        async with session.get(me_url) as response:
-            return await response.json()
+    return await requester.request("GET", UserOsu, me_url, auth_header)
 
 
 async def get_osu_auth_token(code: str):

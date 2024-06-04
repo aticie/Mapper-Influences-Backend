@@ -1,0 +1,36 @@
+name: Test
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      MONGODB_URL: "mongodb://root:example@localhost:27017"
+      TEST_USER_ID: "3953470"
+      SENTRY_DSN: ""
+      JWT_SECRET_KEY: "verysecretkey"
+      OSU_CLIENT_ID: "${{ secrets.OSU_CLIENT_ID }}"
+      OSU_CLIENT_SECRET: "${{ secrets.OSU_CLIENT_SECRET }}"
+      OSU_REDIRECT_URI: "http://localhost:8000/oauth/osu-redirect"
+      POST_LOGIN_REDIRECT_URI: "http://localhost:3000/dashboard"
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.11.0
+        with:
+          mongodb-port: 27017
+          mongodb-username: root
+          mongodb-password: example
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest --tb=short

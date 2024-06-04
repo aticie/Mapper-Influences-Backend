@@ -10,7 +10,6 @@ class APISettings(BaseSettings):
     OSU_CLIENT_SECRET: str
     OSU_REDIRECT_URI: str
     POST_LOGIN_REDIRECT_URI: str
-    POST_LOGOUT_REDIRECT_URI: str
 
 
 class AuthSettings(BaseSettings):
@@ -22,8 +21,12 @@ class SentrySettings(BaseSettings):
     SENTRY_DSN: str
 
 
+class TestSettings(BaseSettings):
+    TEST_USER_ID: str
+
+
 class Settings(
-    DatabaseSettings, APISettings, AuthSettings, SentrySettings
+    DatabaseSettings, APISettings, AuthSettings, SentrySettings, TestSettings
 ):
     pass
 

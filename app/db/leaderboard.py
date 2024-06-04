@@ -1,5 +1,4 @@
 import logging
-from typing import Union
 from app.db import BaseAsyncMongoClient
 
 logger = logging.getLogger(__name__)
