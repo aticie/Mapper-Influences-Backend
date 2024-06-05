@@ -33,9 +33,9 @@ class Requester:
                     cls._instance = Requester()
                     cls._instance.test_path = None
                     cls._instance.session = aiohttp.ClientSession()
-            return cls._instance
+        return cls._instance
 
-    async def set_test_path(self, test_path: str):
+    def set_test_path(self, test_path: str):
         self.test_path = test_path
 
     async def close(self):
