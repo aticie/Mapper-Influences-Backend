@@ -44,9 +44,16 @@ class ActivityDetails(BaseModel):
     description: Optional[str] = None
 
 
+class ActivityUser(BaseModel):
+    id: int
+    username: str
+    avatar_url: str
+    country: str
+
+
 class Activity(BaseModel):
     type: ActivityType
-    user: User
+    user: ActivityUser
     datetime: datetime.datetime
     details: ActivityDetails
 
@@ -81,7 +88,7 @@ class ActivityWebsocket:
 
     async def collect_acitivity(self, type: ActivityType, user_data: dict, details: ActivityDetails):
         '''Add latest activity to the queue and broadcast it to all clients.'''
-        user = User.model_validate(user_data)
+        user = ActivityUser.model_validate(user_data)
         activity = Activity(
             type=type,
             user=user,
