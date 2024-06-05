@@ -63,7 +63,7 @@ class ActivityWebsocket:
     _lock = asyncio.Lock()
 
     @classmethod
-    async def get_instance(cls, queue_size: int = 10):
+    async def get_instance(cls):
         '''To be able to use asyncio lock'''
         if cls._instance is None:
             async with cls._lock:
@@ -71,7 +71,7 @@ class ActivityWebsocket:
                     cls._instance = ActivityWebsocket()
                     cls._instance.connections = []
                     cls._instance.activity_queue = []
-                    cls._instance.queue_size = queue_size
+                    cls._instance.queue_size = 10
         return cls._instance
 
     async def add_connection(self, websocket: WebSocket):

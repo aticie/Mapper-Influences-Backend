@@ -49,7 +49,8 @@ async def mongo_db():
 async def lifespan_manager():
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        requester = await Requester.get_instance("app/test/data")
+        requester = await Requester.get_instance()
+        requester.set_test_path("app/test/data")
         start_mongo_client(settings.MONGODB_URL)
         FastAPICache.init(InMemoryBackend())
         yield

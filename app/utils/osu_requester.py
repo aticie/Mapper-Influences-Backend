@@ -25,15 +25,18 @@ class Requester:
     _lock = asyncio.Lock()
 
     @classmethod
-    async def get_instance(cls, test_path: str | None = None):
+    async def get_instance(cls):
         '''To be able to use asyncio lock'''
         if cls._instance is None:
             async with cls._lock:
                 if cls._instance is None:  # Double-check locking
                     cls._instance = Requester()
-                    cls._instance.test_path = test_path
+                    cls._instance.test_path = None
                     cls._instance.session = aiohttp.ClientSession()
-        return cls._instance
+            return cls._instance
+
+    async def set_test_path(self, test_path: str):
+        self.test_path = test_path
 
     async def close(self):
         await self.session.close()
