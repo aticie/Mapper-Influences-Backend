@@ -56,7 +56,6 @@ async def add_influence(
         description=influence_request.description,
         influenced_to=influence.influenced_to,
     )
-    print(user)
 
     await activity_ws.collect_acitivity(
         ActivityType.ADD_INFLUENCE, user_data=user, details=activity_details)
