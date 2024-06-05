@@ -11,7 +11,7 @@ from app.db import Beatmap, User
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/ws", tags=["oauth"])
+router = APIRouter(prefix="/ws", tags=["websocket"])
 
 
 @router.websocket("")
