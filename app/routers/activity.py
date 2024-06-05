@@ -24,7 +24,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         # I guess we need this to track disconnects
         while True:
-            data = await websocket.receive_text()
+            await websocket.receive_text()
 
     except WebSocketDisconnect:
         await activity_tracker.remove_connection(websocket)
