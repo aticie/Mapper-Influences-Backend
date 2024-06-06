@@ -1,8 +1,10 @@
 <p align=center>
-    <a href=https://www.mapperinfluences.com style="display: flex;align-items: center; text-align: center;justify-content: center;gap: 1em">
-        <img src=https://github.com/aticie/Mapper-Influences-Backend/assets/36697363/9386b5e7-bd1c-41f1-bb47-398cca2c7b6b>
-        <span style="font-size:2.5rem">https://www.mapperinfluences.com/</span>
+    <a href=https://www.mapperinfluences.com>
+    <img src=https://github.com/aticie/Mapper-Influences-Backend/assets/36697363/9386b5e7-bd1c-41f1-bb47-398cca2c7b6b>
     </a>
+</p>
+<p align=center>
+    <a href=https://www.mapperinfluences.com>https://www.mapperinfluences.com</a>
 </p>
 
 ---
