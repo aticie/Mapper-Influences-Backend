@@ -70,7 +70,7 @@ class ActivityWebsocket:
                     cls._instance = ActivityWebsocket()
                     cls._instance.connections = []
                     cls._instance.activity_queue = []
-                    cls._instance.queue_size = 10
+                    cls._instance.queue_size = 20
         return cls._instance
 
     def clear_queue(self):
@@ -91,10 +91,17 @@ class ActivityWebsocket:
     async def collect_acitivity(self, type: ActivityType, user_data: dict, details: ActivityDetails):
         '''Add latest activity to the queue and broadcast it to all clients.'''
 
-        # Skip if user already has an activity in the queue
         for activity in self.activity_queue:
+            # We only want one update for bio change
             if activity["type"] == type.value and activity["user"]["id"] == user_data["id"]:
-                return
+                if activity["type"] == "EDIT_BIO":
+                    return
+                # We only want one update if the user added the same beatmap
+                if activity["type"] == "ADD_BEATMAP" and activity["details"]["beatmap"]["id"] == details.beatmap.id:
+                    return
+                # We only want one update if the user added the same influence
+                if activity["type"] == "ADD_INFLUENCE" and activity["details"]["influenced_to"]["id"] == details.influenced_to.id:
+                    return
 
         user = ActivityUser.model_validate(user_data)
         activity = Activity(
