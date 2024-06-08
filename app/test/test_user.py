@@ -11,13 +11,13 @@ async def test_get_user(test_client, headers, mongo_db, test_user_id):
 
 
 @pytest.mark.asyncio
-async def test_set_user_bio(test_client, headers, mongo_db, test_user_id):
+async def test_set_user_bio(test_client, headers):
     response = await test_client.post("users/bio", json={"bio": "test"}, headers=headers)
     assert response.status_code == 200
 
 
 @pytest.mark.asyncio
-async def test_add_and_remove_beatmap(test_client, headers, mongo_db, test_user_id):
+async def test_add_and_remove_beatmap(test_client, headers):
     response = await test_client.post("users/add_beatmap", json={"id": 131891, "is_beatmapset": False}, headers=headers)
     assert response.status_code == 200
     response = await test_client.delete("users/remove_beatmap/diff/131891", headers=headers)
@@ -36,10 +36,16 @@ async def test_influence_order(test_client, headers, mongo_db, test_user_id):
     assert response.status_code == 200
     response = await test_client.post("influence", json=body2, headers=headers)
     assert response.status_code == 200
-    order_body = {"influence_ids": [1848318, 418699]}
+
+    response = await test_client.get(f"influence/{test_user_id}", headers=headers)
+    response = response.json()
+    response = sorted(response, key=lambda x: x["influenced_to"])
+    influenced_to_id_list = [x["influenced_to"] for x in response]
+
+    order_body = {"influence_ids": influenced_to_id_list}
     response = await test_client.post("users/influence-order", json=order_body, headers=headers)
     assert response.status_code == 200
     response = await test_client.get(f"influence/{test_user_id}", headers=headers)
     response = response.json()
-    assert response[0]["influenced_to"] == 1848318
-    assert response[1]["influenced_to"] == 418699
+    assert response[0]["influenced_to"] == influenced_to_id_list[0]
+    assert response[1]["influenced_to"] == influenced_to_id_list[1]
