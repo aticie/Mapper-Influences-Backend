@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from app.db import Beatmap, User
 from app.db.instance import get_mongo_db, AsyncMongoClient
+from app.routers.activity import ActivityDetails, ActivityType, ActivityWebsocket
 from app.utils.jwt import decode_user_token
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -44,8 +45,17 @@ async def get_user_by_id(
 async def update_user_bio(
         user: Annotated[dict, Depends(decode_user_token)],
         bio: RequestBio,
-        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db),
+        activity_ws: ActivityWebsocket = Depends(
+            ActivityWebsocket.get_instance)
 ):
+
+    activity_details = ActivityDetails(
+        description=bio.bio
+    )
+    await activity_ws.collect_acitivity(
+        ActivityType.EDIT_BIO, user_data=user, details=activity_details)
+
     return await mongo_db.update_user_bio(user["id"], bio.bio)
 
 
@@ -53,8 +63,17 @@ async def update_user_bio(
 async def add_beatmap_to_user(
         user: Annotated[dict, Depends(decode_user_token)],
         beatmap: Beatmap,
-        mongo_db: AsyncMongoClient = Depends(get_mongo_db)
+        mongo_db: AsyncMongoClient = Depends(get_mongo_db),
+        activity_ws: ActivityWebsocket = Depends(
+            ActivityWebsocket.get_instance)
 ):
+
+    activity_details = ActivityDetails(
+        beatmap=beatmap
+    )
+    await activity_ws.collect_acitivity(
+        ActivityType.ADD_BEATMAP, user_data=user, details=activity_details)
+
     await mongo_db.add_beatmap_to_user(user["id"], beatmap)
     return
 

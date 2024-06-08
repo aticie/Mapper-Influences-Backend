@@ -9,7 +9,7 @@ import sentry_sdk
 
 
 from app.db.instance import close_mongo_client, start_mongo_client
-from app.routers import auth, influence, osu_api_full_response, user, leaderboard, osu_api
+from app.routers import activity, auth, influence, osu_api_full_response, user, leaderboard, osu_api
 from app.config import settings
 from app.utils.osu_requester import Requester
 
@@ -54,3 +54,4 @@ app.include_router(user.router)
 app.include_router(leaderboard.router)
 app.include_router(osu_api.router)
 app.include_router(osu_api_full_response.router)
+app.include_router(activity.router)

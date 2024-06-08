@@ -1,6 +1,5 @@
 
 from datetime import timedelta
-import aiohttp
 
 from app.utils.jwt import obtain_jwt
 from app.config import settings

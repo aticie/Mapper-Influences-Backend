@@ -33,4 +33,5 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run tests
+      # KEEP THE `--tb=short` TO AVOID LEAKING CREDENTIALS
         run: pytest --tb=short

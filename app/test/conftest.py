@@ -7,6 +7,7 @@ from fastapi_cache.backends.inmemory import InMemoryBackend
 from httpx import AsyncClient
 import pytest
 import pytest_asyncio
+from httpx_ws.transport import ASGIWebSocketTransport
 
 from app.utils.osu_requester import Requester
 
@@ -49,7 +50,8 @@ async def mongo_db():
 async def lifespan_manager():
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        requester = await Requester.get_instance("app/test/data")
+        requester = await Requester.get_instance()
+        requester.set_test_path("app/test/data")
         start_mongo_client(settings.MONGODB_URL)
         FastAPICache.init(InMemoryBackend())
         yield
@@ -64,5 +66,5 @@ async def lifespan_manager():
 
 @pytest_asyncio.fixture
 async def test_client(lifespan_manager):
-    async with AsyncClient(app=lifespan_manager, base_url="https://test") as client:
+    async with AsyncClient(transport=ASGIWebSocketTransport(lifespan_manager), base_url="https://test") as client:
         yield client

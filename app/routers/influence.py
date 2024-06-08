@@ -4,8 +4,9 @@ import aiohttp
 from fastapi import APIRouter, Cookie, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.db import Beatmap, InfluenceDBModel
+from app.db import Beatmap, InfluenceDBModel, User
 from app.db.instance import get_mongo_db, AsyncMongoClient
+from app.routers.activity import ActivityDetails, ActivityType, ActivityWebsocket
 from app.routers.osu_api import get_user_osu_parsed
 from app.utils.jwt import decode_jwt
 from app.utils.osu_requester import Requester
@@ -31,7 +32,9 @@ async def add_influence(
         influence_request: InfluenceRequest,
         user: Annotated[dict, Depends(decode_user_token)],
         mongo_db: AsyncMongoClient = Depends(get_mongo_db),
-        requester: Requester = Depends(Requester.get_instance)
+        requester: Requester = Depends(Requester.get_instance),
+        activity_ws: ActivityWebsocket = Depends(
+            ActivityWebsocket.get_instance)
 ):
     db_user = await mongo_db.get_user_details(user["id"])
     influence = InfluenceDBModel(
@@ -47,7 +50,16 @@ async def add_influence(
     if "error" in user_osu:
         raise HTTPException(status_code=404, detail="User not found on osu!")
     await mongo_db.create_user(user_osu)
-    influence_id = await mongo_db.add_user_influence(influence=influence)
+    await mongo_db.add_user_influence(influence=influence)
+
+    activity_details = ActivityDetails(
+        description=influence_request.description,
+        influenced_to=influence.influenced_to,
+    )
+
+    await activity_ws.collect_acitivity(
+        ActivityType.ADD_INFLUENCE, user_data=user, details=activity_details)
+
     return influence
 
 
