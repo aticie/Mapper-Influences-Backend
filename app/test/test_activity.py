@@ -1,6 +1,7 @@
 import pytest
 from httpx_ws import aconnect_ws
 
+from app.routers.activity import ActivityWebsocket
 from app.test.helpers import add_fake_user_to_db
 
 
@@ -22,16 +23,14 @@ def assert_add_influence(data, influenced_to):
     assert data["type"] == "ADD_INFLUENCE"
     assert data["details"]["description"] == "hi"
     assert data["details"]["beatmap"] == None
-    assert data["details"]["influenced_to"] == influenced_to
+    assert data["details"]["influenced_to"]["id"] == influenced_to
 
-
-# Sadly, can't test login in tests as it's a bit more complicated
 
 @pytest.mark.asyncio
 async def test_activity_websocket(test_client, mongo_db, headers, test_user_id):
     await add_fake_user_to_db(mongo_db, test_user_id)
 
-    # Edit bio 20 times to fill up the activity queue
+    # Edit bio 20 times (should only show the first one)
     for _ in range(20):
         response = await test_client.post("users/bio", json={"bio": "test"}, headers=headers)
         assert response.status_code == 200
@@ -47,10 +46,14 @@ async def test_activity_websocket(test_client, mongo_db, headers, test_user_id):
     async with aconnect_ws("ws://test/ws", test_client) as ws:
         # Initial connection
         response = await ws.receive_json()
-        assert len(response) == 10
+        assert len(response) == 3
         assert_edit_bio(response[0], "test")
-        assert_add_influence(response[8], 418699)
-        assert_add_beatmap(response[9], {"id": 131891, "is_beatmapset": False})
+        assert_add_influence(response[1], 418699)
+        assert_add_beatmap(response[2], {"id": 131891, "is_beatmapset": False})
+
+        # Clear activity to get fresh data. Activity won't be added to queue if the user and activities are the same.
+        ws_manager = await ActivityWebsocket.get_instance()
+        ws_manager.clear_queue()
 
         # Spontaneous activity
         response = await test_client.post("users/add_beatmap", json={"id": 2117273, "is_beatmapset": False}, headers=headers)

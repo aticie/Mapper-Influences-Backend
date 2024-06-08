@@ -35,13 +35,6 @@ class ActivityType(Enum):
     EDIT_BIO = "EDIT_BIO"
     ADD_BEATMAP = "ADD_BEATMAP"
     ADD_INFLUENCE = "ADD_INFLUENCE"
-    LOGIN = "LOGIN"
-
-
-class ActivityDetails(BaseModel):
-    influenced_to: Optional[int] = None
-    beatmap: Optional[Beatmap] = None
-    description: Optional[str] = None
 
 
 class ActivityUser(BaseModel):
@@ -49,6 +42,12 @@ class ActivityUser(BaseModel):
     username: str
     avatar_url: str
     country: str
+
+
+class ActivityDetails(BaseModel):
+    influenced_to: Optional[ActivityUser] = None
+    beatmap: Optional[Beatmap] = None
+    description: Optional[str] = None
 
 
 class Activity(BaseModel):
@@ -74,6 +73,9 @@ class ActivityWebsocket:
                     cls._instance.queue_size = 10
         return cls._instance
 
+    def clear_queue(self):
+        self.activity_queue = []
+
     async def add_connection(self, websocket: WebSocket):
         '''Immidiately sends activities to new clients.'''
         self.connections.append(websocket)
@@ -88,6 +90,12 @@ class ActivityWebsocket:
 
     async def collect_acitivity(self, type: ActivityType, user_data: dict, details: ActivityDetails):
         '''Add latest activity to the queue and broadcast it to all clients.'''
+
+        # Skip if user already has an activity in the queue
+        for activity in self.activity_queue:
+            if activity["type"] == type.value and activity["user"]["id"] == user_data["id"]:
+                return
+
         user = ActivityUser.model_validate(user_data)
         activity = Activity(
             type=type,

@@ -22,8 +22,6 @@ async def osu_oauth2_redirect(
         code: str,
         mongo_db: AsyncMongoClient = Depends(get_mongo_db),
         requester: Requester = Depends(Requester.get_instance),
-        activity_ws: ActivityWebsocket = Depends(
-            ActivityWebsocket.get_instance)
 ):
 
     redirect_response = RedirectResponse(settings.POST_LOGIN_REDIRECT_URI)
@@ -36,9 +34,6 @@ async def osu_oauth2_redirect(
         db_user, expires_delta=timedelta(seconds=access_token["expires_in"]))
     redirect_response.set_cookie(
         key="user_token", value=jwt_token, httponly=True, max_age=access_token["expires_in"])
-
-    await activity_ws.collect_acitivity(
-        ActivityType.LOGIN, user_data=db_user, details=ActivityDetails())
 
     return redirect_response
 

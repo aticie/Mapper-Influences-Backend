@@ -1,12 +1,11 @@
 from typing import Annotated, Optional
 
-import aiohttp
 from fastapi import APIRouter, Cookie, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.db import Beatmap, InfluenceDBModel, User
 from app.db.instance import get_mongo_db, AsyncMongoClient
-from app.routers.activity import ActivityDetails, ActivityType, ActivityWebsocket
+from app.routers.activity import ActivityDetails, ActivityType, ActivityUser, ActivityWebsocket
 from app.routers.osu_api import get_user_osu_parsed
 from app.utils.jwt import decode_jwt
 from app.utils.osu_requester import Requester
@@ -24,7 +23,11 @@ class InfluenceRequest(BaseModel):
 def decode_user_token(
         user_token: Annotated[str, Cookie()],
 ):
-    return decode_jwt(user_token)
+    try:
+        return decode_jwt(user_token)
+
+    except:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 @router.post("", summary="Adds an influence.", response_model=InfluenceDBModel)
@@ -49,14 +52,13 @@ async def add_influence(
     # TODO do better error handling here
     if "error" in user_osu:
         raise HTTPException(status_code=404, detail="User not found on osu!")
-    await mongo_db.create_user(user_osu)
+    created_user_db = await mongo_db.create_user(user_osu)
     await mongo_db.add_user_influence(influence=influence)
 
     activity_details = ActivityDetails(
-        description=influence_request.description,
-        influenced_to=influence.influenced_to,
+        influenced_to=ActivityUser.model_validate(created_user_db),
+        description=influence_request.description
     )
-
     await activity_ws.collect_acitivity(
         ActivityType.ADD_INFLUENCE, user_data=user, details=activity_details)
 

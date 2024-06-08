@@ -68,3 +68,4 @@ async def lifespan_manager():
 async def test_client(lifespan_manager):
     async with AsyncClient(transport=ASGIWebSocketTransport(lifespan_manager), base_url="https://test") as client:
         yield client
+
