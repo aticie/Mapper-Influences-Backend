@@ -4,7 +4,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      MONGODB_URL: "mongodb://root:example@localhost:27017"
+      MONGO_URL: "mongodb://root:example@localhost:27017"
       TEST_USER_ID: "3953470"
       SENTRY_DSN: ""
       JWT_SECRET_KEY: "verysecretkey"

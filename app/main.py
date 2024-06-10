@@ -31,7 +31,7 @@ sentry_sdk.init(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     requester = await Requester.get_instance()
-    start_mongo_client(settings.MONGODB_URL)
+    start_mongo_client(settings.MONGO_URL)
     FastAPICache.init(InMemoryBackend())
     yield
     close_mongo_client()

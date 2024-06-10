@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class DatabaseSettings(BaseSettings):
-    MONGODB_URL: str
+    MONGO_URL: str
 
 
 class APISettings(BaseSettings):

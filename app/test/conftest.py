@@ -41,7 +41,7 @@ async def test_user_id():
 
 @pytest_asyncio.fixture(scope="session")
 async def mongo_db():
-    start_mongo_client(settings.MONGODB_URL)
+    start_mongo_client(settings.MONGO_URL)
     yield get_mongo_db()
     close_mongo_client()
 
@@ -52,7 +52,7 @@ async def lifespan_manager():
     async def lifespan(app: FastAPI):
         requester = await Requester.get_instance()
         requester.set_test_path("app/test/data")
-        start_mongo_client(settings.MONGODB_URL)
+        start_mongo_client(settings.MONGO_URL)
         FastAPICache.init(InMemoryBackend())
         yield
         close_mongo_client()
