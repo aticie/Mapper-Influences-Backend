@@ -12,7 +12,7 @@ from httpx_ws.transport import ASGIWebSocketTransport
 from app.utils.osu_requester import Requester
 
 from ..main import app
-from app.test.helpers import add_fake_user_to_db, get_authentication_jwt
+from app.test.helpers import get_authentication_jwt
 from app.config import settings
 from app.db.instance import close_mongo_client, get_mongo_db, start_mongo_client
 
@@ -66,6 +66,7 @@ async def lifespan_manager():
 
 @pytest_asyncio.fixture
 async def test_client(lifespan_manager):
-    async with AsyncClient(transport=ASGIWebSocketTransport(lifespan_manager), base_url="https://test") as client:
+    async with AsyncClient(
+        transport=ASGIWebSocketTransport(lifespan_manager), base_url="https://test"
+    ) as client:
         yield client
-

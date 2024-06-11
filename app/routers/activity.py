@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from app.db import Beatmap, User
+from app.db import Beatmap
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,24 @@ async def websocket_endpoint(websocket: WebSocket):
 class ActivityType(Enum):
     EDIT_BIO = "EDIT_BIO"
     ADD_BEATMAP = "ADD_BEATMAP"
+    REMOVE_BEATMAP = "REMOVE_BEATMAP"
     ADD_INFLUENCE = "ADD_INFLUENCE"
+    REMOVE_INFLUENCE = "REMOVE_INFLUENCE"
+
+
+class ActivityGroup(Enum):
+    BEATMAP = "BEATMAP"
+    INFLUENCE = "INFLUENCE"
+    BIO = "BIO"
+
+
+activity_type_group_map = {
+    "EDIT_BIO": ActivityGroup.BIO,
+    "ADD_BEATMAP": ActivityGroup.BEATMAP,
+    "REMOVE_BEATMAP": ActivityGroup.BEATMAP,
+    "ADD_INFLUENCE": ActivityGroup.INFLUENCE,
+    "REMOVE_INFLUENCE": ActivityGroup.INFLUENCE,
+}
 
 
 class ActivityUser(BaseModel):
@@ -63,7 +80,7 @@ class ActivityWebsocket:
 
     @classmethod
     async def get_instance(cls):
-        '''To be able to use asyncio lock'''
+        """To be able to use asyncio lock"""
         if cls._instance is None:
             async with cls._lock:
                 if cls._instance is None:  # Double-check locking
@@ -77,7 +94,7 @@ class ActivityWebsocket:
         self.activity_queue = []
 
     async def add_connection(self, websocket: WebSocket):
-        '''Immidiately sends activities to new clients.'''
+        """Immidiately sends activities to new clients."""
         self.connections.append(websocket)
         await websocket.send_json(self.activity_queue)
 
@@ -88,27 +105,34 @@ class ActivityWebsocket:
         for connection in self.connections:
             await connection.send_json(activity)
 
-    async def collect_acitivity(self, type: ActivityType, user_data: dict, details: ActivityDetails):
-        '''Add latest activity to the queue and broadcast it to all clients.'''
+    async def collect_acitivity(
+        self, type: ActivityType, user_data: dict, details: ActivityDetails
+    ):
+        """Add latest activity to the queue and broadcast it to all clients."""
 
+        # Spam prevention
         for activity in self.activity_queue:
-            # We only want one update for bio change
-            if activity["type"] == type.value and activity["user"]["id"] == user_data["id"]:
-                if activity["type"] == "EDIT_BIO":
-                    return
-                # We only want one update if the user added the same beatmap
-                if activity["type"] == "ADD_BEATMAP" and activity["details"]["beatmap"]["id"] == details.beatmap.id:
-                    return
-                # We only want one update if the user added the same influence
-                if activity["type"] == "ADD_INFLUENCE" and activity["details"]["influenced_to"]["id"] == details.influenced_to.id:
-                    return
+            if (
+                activity["user"]["id"] == user_data["id"]
+                and activity_type_group_map[type.value]
+                == activity_type_group_map[activity["type"]]
+            ):
+                match activity_type_group_map[type.value]:
+                    case ActivityGroup.BIO:
+                        return
+                    case ActivityGroup.BEATMAP:
+                        if activity["details"]["beatmap"]["id"] == details.beatmap.id:
+                            return
+                    case ActivityGroup.INFLUENCE:
+                        if (
+                            activity["details"]["influenced_to"]["id"]
+                            == details.influenced_to.id
+                        ):
+                            return
 
         user = ActivityUser.model_validate(user_data)
         activity = Activity(
-            type=type,
-            user=user,
-            datetime=datetime.datetime.now(),
-            details=details
+            type=type, user=user, datetime=datetime.datetime.now(), details=details
         )
         activity = activity.model_dump(mode="json")
         self.activity_queue.append(activity)

@@ -23,12 +23,11 @@ def obtain_jwt(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 def decode_jwt(jwt_token: str):
-    user_data_dict = jwt.decode(
-        jwt_token, key=SECRET_KEY, algorithms=ALGORITHM)
+    user_data_dict = jwt.decode(jwt_token, key=SECRET_KEY, algorithms=ALGORITHM)
     return user_data_dict
 
 
 def decode_user_token(
-        user_token: Annotated[str, Cookie()],
+    user_token: Annotated[str, Cookie()],
 ):
     return decode_jwt(user_token)

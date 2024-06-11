@@ -9,7 +9,9 @@ async def test_osu_api_user(test_client, headers, test_user_id):
 
 @pytest.mark.asyncio
 async def test_osu_api_beatmap(test_client, headers):
-    response = await test_client.get("osu_api/beatmap/131891?type=beatmap", headers=headers)
+    response = await test_client.get(
+        "osu_api/beatmap/131891?type=beatmap", headers=headers
+    )
     assert response.status_code == 200
     response = await test_client.get("osu_api/beatmap/41823", headers=headers)
     assert response.status_code == 200

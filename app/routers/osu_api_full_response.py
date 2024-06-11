@@ -4,33 +4,40 @@
 from typing import Annotated
 
 import aiohttp
-from fastapi import APIRouter, Depends, HTTPException, Cookie, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Cookie, Request
 from fastapi_cache.decorator import cache
 
 from app.routers import request_key_builder
 from app.utils.jwt import decode_jwt
 
-OSU_API_BEATMAP_CACHE_EXPIRE = 12*60*60
-OSU_API_USER_CACHE_EXPIRE = 3*60*60
-OSU_API_SEARCH_CACHE_EXPIRE = 10*60
+OSU_API_BEATMAP_CACHE_EXPIRE = 12 * 60 * 60
+OSU_API_USER_CACHE_EXPIRE = 3 * 60 * 60
+OSU_API_SEARCH_CACHE_EXPIRE = 10 * 60
 OSU_API_CACHE_NAMESPACE = "osu_api"
 
 router = APIRouter(prefix="/osu_api_full", tags=["osu! API Full Response"])
 
 
 def get_access_token(
-        user_token: Annotated[str, Cookie()],
+    user_token: Annotated[str, Cookie()],
 ):
     user = decode_jwt(user_token)
     return user["access_token"]
 
 
-@router.get("/beatmap/{id}", summary="get beatmapset data using osu api. Use type=beatmap to get beatmap data")
-@cache(namespace=OSU_API_CACHE_NAMESPACE, expire=OSU_API_BEATMAP_CACHE_EXPIRE, key_builder=request_key_builder)
+@router.get(
+    "/beatmap/{id}",
+    summary="get beatmapset data using osu api. Use type=beatmap to get beatmap data",
+)
+@cache(
+    namespace=OSU_API_CACHE_NAMESPACE,
+    expire=OSU_API_BEATMAP_CACHE_EXPIRE,
+    key_builder=request_key_builder,
+)
 async def get_beatmapset(
-        id: int,
-        access_token: Annotated[str, Depends(get_access_token)],
-        type: str | None = None,
+    id: int,
+    access_token: Annotated[str, Depends(get_access_token)],
+    type: str | None = None,
 ):
     if type == "beatmapset" or type is None:
         return await get_beatmapset_osu(access_token, id)
@@ -39,42 +46,62 @@ async def get_beatmapset(
         return await get_beatmapset_osu(access_token, beatmap["beatmapset_id"])
     else:
         raise HTTPException(
-            status_code=400, detail="Invalid type, type can be 'beatmap' or 'beatmapset'")
+            status_code=400,
+            detail="Invalid type, type can be 'beatmap' or 'beatmapset'",
+        )
 
 
 @router.get("/user/{user_id}", summary="get user data using osu api")
-@cache(namespace=OSU_API_CACHE_NAMESPACE, expire=OSU_API_USER_CACHE_EXPIRE, key_builder=request_key_builder)
+@cache(
+    namespace=OSU_API_CACHE_NAMESPACE,
+    expire=OSU_API_USER_CACHE_EXPIRE,
+    key_builder=request_key_builder,
+)
 async def get_user(
-        user_id: int,
-        access_token: Annotated[str, Depends(get_access_token)],
+    user_id: int,
+    access_token: Annotated[str, Depends(get_access_token)],
 ):
     return await get_user_osu(access_token, user_id)
 
 
-@router.get("/user_beatmaps/{beatmap_id}/{type}", summary="get user beatmap data using osu api")
-@cache(namespace=OSU_API_CACHE_NAMESPACE, expire=OSU_API_BEATMAP_CACHE_EXPIRE, key_builder=request_key_builder)
+@router.get(
+    "/user_beatmaps/{beatmap_id}/{type}", summary="get user beatmap data using osu api"
+)
+@cache(
+    namespace=OSU_API_CACHE_NAMESPACE,
+    expire=OSU_API_BEATMAP_CACHE_EXPIRE,
+    key_builder=request_key_builder,
+)
 async def get_user_beatmap(
-        beatmap_id: int,
-        type: str,
-        access_token: Annotated[str, Depends(get_access_token)],
+    beatmap_id: int,
+    type: str,
+    access_token: Annotated[str, Depends(get_access_token)],
 ):
     return await get_user_beatmaps_osu(access_token, beatmap_id, type)
 
 
 @router.get("/search/{query}", summary="search users using osu api")
-@cache(namespace=OSU_API_CACHE_NAMESPACE, expire=OSU_API_SEARCH_CACHE_EXPIRE, key_builder=request_key_builder)
+@cache(
+    namespace=OSU_API_CACHE_NAMESPACE,
+    expire=OSU_API_SEARCH_CACHE_EXPIRE,
+    key_builder=request_key_builder,
+)
 async def search(
-        query: str,
-        access_token: Annotated[str, Depends(get_access_token)],
+    query: str,
+    access_token: Annotated[str, Depends(get_access_token)],
 ):
     return await search_user_osu(access_token, query)
 
 
 @router.get("/search_map", summary="search beatmaps using osu api")
-@cache(namespace=OSU_API_CACHE_NAMESPACE, expire=OSU_API_SEARCH_CACHE_EXPIRE, key_builder=request_key_builder)
+@cache(
+    namespace=OSU_API_CACHE_NAMESPACE,
+    expire=OSU_API_SEARCH_CACHE_EXPIRE,
+    key_builder=request_key_builder,
+)
 async def search_map(
-        access_token: Annotated[str, Depends(get_access_token)],
-        request: Request,
+    access_token: Annotated[str, Depends(get_access_token)],
+    request: Request,
 ):
     return await search_map_osu(access_token, str(request.query_params))
 

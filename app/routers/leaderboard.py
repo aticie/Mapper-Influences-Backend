@@ -24,13 +24,18 @@ class LeaderboardResponse(BaseModel):
     count: int
 
 
-@router.get("", response_model=LeaderboardResponse, summary="Get top users which are most mentioned by others")
+@router.get(
+    "",
+    response_model=LeaderboardResponse,
+    summary="Get top users which are most mentioned by others",
+)
 @cache(namespace=LEADERBOARD_CACHE_NAMESPACE, expire=LEADERBOARD_CACHE_EXPIRE)
 async def get_leaderboard(
     country: str = None,
     limit: int = None,
     skip: int = None,
     ranked: bool = False,
+    type: int = None,
     mongo_db: AsyncMongoClient = Depends(get_mongo_db),
-):
-    return await mongo_db.get_leaderboard(ranked, country, skip, limit)
+) -> LeaderboardResponse:
+    return await mongo_db.get_leaderboard(ranked, country, skip, limit, type)
