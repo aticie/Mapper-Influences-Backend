@@ -111,13 +111,13 @@ class ActivityWebsocket:
         """Add latest activity to the queue and broadcast it to all clients."""
 
         # Spam prevention
+        new_activity_group = activity_type_group_map[type.value]
         for activity in self.activity_queue:
             if (
                 activity["user"]["id"] == user_data["id"]
-                and activity_type_group_map[type.value]
-                == activity_type_group_map[activity["type"]]
+                and new_activity_group == activity_type_group_map[activity["type"]]
             ):
-                match activity_type_group_map[type.value]:
+                match new_activity_group:
                     case ActivityGroup.BIO:
                         return
                     case ActivityGroup.BEATMAP:
