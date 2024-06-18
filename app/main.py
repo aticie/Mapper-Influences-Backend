@@ -11,6 +11,7 @@ import sentry_sdk
 from app.db.instance import close_mongo_client, start_mongo_client
 from app.routers import (
     activity,
+    apiv2test,
     auth,
     influence,
     osu_api_full_response,
@@ -19,7 +20,7 @@ from app.routers import (
     osu_api,
 )
 from app.config import settings
-from app.utils.osu_requester import Requester
+from app.utils.osu_requester import ApiMultiRequester, Requester
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +42,20 @@ async def lifespan(app: FastAPI):
     requester = await Requester.get_instance()
     start_mongo_client(settings.MONGO_URL)
     FastAPICache.init(InMemoryBackend())
+    # initialize instances with paths here. You can gp
+    await ApiMultiRequester.get_instance(
+        osu_api.OsuUserMultiple, "https://osu.ppy.sh/api/v2/users"
+    )
+    await ApiMultiRequester.get_instance(
+        osu_api.BeatmapsetOsu, "https://osu.ppy.sh/api/v2/beatmapsets"
+    )
+    multi_requester = await ApiMultiRequester.get_instance(
+        osu_api.BeatmapOsu, "https://osu.ppy.sh/api/v2/beatmaps"
+    )
     yield
     close_mongo_client()
     await requester.close()
+    await multi_requester.close_all()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -63,3 +75,4 @@ app.include_router(leaderboard.router)
 app.include_router(osu_api.router)
 app.include_router(osu_api_full_response.router)
 app.include_router(activity.router)
+app.include_router(apiv2test.router)

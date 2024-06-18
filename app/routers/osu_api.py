@@ -44,6 +44,9 @@ class UserOsu(BaseUser):
     avatar_url: str
     country: Country
     groups: list[Group]
+
+
+class UserOsuExtended(UserOsu):
     previous_usernames: list[str]
     ranked_and_approved_beatmapset_count: int
     ranked_beatmapset_count: int
@@ -52,6 +55,13 @@ class UserOsu(BaseUser):
     loved_beatmapset_count: int
     graveyard_beatmapset_count: int
     pending_beatmapset_count: int
+
+
+class OsuUserMultiple(ConfiguredModel):
+    users: list[UserOsu]
+
+    def get_items(self):
+        return self.users
 
 
 class OsuSearchUserData(ConfiguredModel):
@@ -135,7 +145,9 @@ async def get_beatmapset(
 
 
 @router.get(
-    "/user/{user_id}", response_model=UserOsu, summary="get user data using osu api"
+    "/user/{user_id}",
+    response_model=UserOsuExtended,
+    summary="get user data using osu api",
 )
 @cache(
     namespace=OSU_API_CACHE_NAMESPACE,
@@ -146,7 +158,7 @@ async def get_user(
     user_id: int,
     access_token: Annotated[str, Depends(get_access_token)],
     requester: Requester = Depends(Requester.get_instance),
-) -> UserOsu:
+) -> UserOsuExtended:
     return await get_user_osu_parsed(requester, access_token, user_id)
 
 
@@ -207,7 +219,7 @@ async def get_beatmapset_osu_parsed(
 async def get_user_osu_parsed(requester: Requester, access_token: str, user_id: int):
     user_url = f"https://osu.ppy.sh/api/v2/users/{user_id}"
     auth_header = {"Authorization": f"Bearer {access_token}"}
-    return await requester.request("GET", UserOsu, user_url, auth_header)
+    return await requester.request("GET", UserOsuExtended, user_url, auth_header)
 
 
 async def search_user_osu_parsed(requester: Requester, access_token: str, query: str):
