@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse
 
 from app.config import settings
 from app.db.instance import get_mongo_db, AsyncMongoClient
-from app.routers.osu_api import UserOsu
+from app.routers.osu_api import UserOsuExtended
 from app.utils.jwt import obtain_jwt
 from app.utils.osu_requester import Requester
 
@@ -49,7 +49,7 @@ async def logout(response: Response):
 async def get_osu_user(requester, access_token: str):
     me_url = "https://osu.ppy.sh/api/v2/me"
     auth_header = {"Authorization": f"Bearer {access_token}"}
-    return await requester.request("GET", UserOsu, me_url, auth_header)
+    return await requester.request("GET", UserOsuExtended, me_url, auth_header)
 
 
 async def get_osu_auth_token(code: str):

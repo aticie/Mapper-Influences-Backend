@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.db import Beatmap, InfluenceDBModel
@@ -12,7 +12,7 @@ from app.routers.activity import (
     ActivityWebsocket,
 )
 from app.routers.osu_api import get_user_osu_parsed
-from app.utils.jwt import decode_jwt
+from app.utils.jwt import decode_user_token
 from app.utils.osu_requester import Requester
 
 router = APIRouter(prefix="/influence", tags=["influence"])
@@ -23,16 +23,6 @@ class InfluenceRequest(BaseModel):
     type: int = 1
     description: Optional[str] = None
     beatmaps: list[Beatmap] = []
-
-
-def decode_user_token(
-    user_token: Annotated[str, Cookie()],
-):
-    try:
-        return decode_jwt(user_token)
-
-    except Exception as ex:
-        raise HTTPException(status_code=401, detail=f"Invalid token {ex}")
 
 
 @router.post("", summary="Adds an influence.", response_model=InfluenceDBModel)

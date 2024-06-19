@@ -1,12 +1,13 @@
 import base64
 import logging
+
 from app.db import BaseAsyncMongoClient, Beatmap
-from app.routers.osu_api import UserOsu
+from app.routers.osu_api import UserOsuExtended
 
 logger = logging.getLogger(__name__)
 
 
-def has_ranked_beatmapsets(user_data: UserOsu) -> bool:
+def has_ranked_beatmapsets(user_data: UserOsuExtended) -> bool:
     final_count = user_data.ranked_beatmapset_count
     final_count += user_data.loved_beatmapset_count
     final_count += user_data.guest_beatmapset_count
@@ -18,7 +19,7 @@ class UserMongoClient(BaseAsyncMongoClient):
         logger.debug(f"Getting user influences of {user_id}")
         return await self.users_collection.find_one({"id": user_id}, {"_id": False})
 
-    async def create_user(self, user_details: UserOsu):
+    async def create_user(self, user_details: UserOsuExtended):
         db_user = {
             "id": user_details.id,
             "avatar_url": user_details.avatar_url,

@@ -34,6 +34,10 @@ class User(BaseModel):
     country: str
 
 
+class UserWithInfluences(User):
+    influences: list[InfluenceDBModel]
+
+
 class BaseAsyncMongoClient(AsyncIOMotorClient):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

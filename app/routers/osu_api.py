@@ -1,11 +1,11 @@
 from typing import Annotated, Optional
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Cookie, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi_cache.decorator import cache
 from pydantic import BaseModel
 
 from app.routers import request_key_builder
-from app.utils.jwt import decode_jwt
+from app.utils.jwt import decode_user_token
 from app.utils.osu_requester import Requester
 
 OSU_API_BEATMAP_CACHE_EXPIRE = 12 * 60 * 60
@@ -57,7 +57,7 @@ class UserOsuExtended(UserOsu):
     pending_beatmapset_count: int
 
 
-class OsuUserMultiple(ConfiguredModel):
+class UserOsuMultiple(ConfiguredModel):
     users: list[UserOsu]
 
     def get_items(self):
@@ -78,6 +78,13 @@ class BeatmapOsu(ConfiguredModel):
     mode: str
     beatmapset_id: int
     version: str
+
+
+class BeatmapOsuMultiple(ConfiguredModel):
+    beatmaps: list[BeatmapOsu]
+
+    def get_items(self):
+        return self.beatmaps
 
 
 class BeatmapsetRelatedUser(ConfiguredModel):
@@ -103,15 +110,15 @@ class BeatmapsetOsu(BaseBeatmapset):
     related_users: list[BeatmapsetRelatedUser]
 
 
+class BeatmapsetOsuMultiple(ConfiguredModel):
+    beatmapsets: list[BeatmapsetOsu]
+
+    def get_items(self):
+        return self.beatmapsets
+
+
 class OsuSearchMapResponse(ConfiguredModel):
     beatmapsets: list[BaseBeatmapset]
-
-
-def get_access_token(
-    user_token: Annotated[str, Cookie()],
-):
-    user = decode_jwt(user_token)
-    return user["access_token"]
 
 
 @router.get(
@@ -126,17 +133,15 @@ def get_access_token(
 )
 async def get_beatmapset(
     id: int,
-    access_token: Annotated[str, Depends(get_access_token)],
+    user: Annotated[str, Depends(decode_user_token)],
     requester: Requester = Depends(Requester.get_instance),
     type: str | None = None,
 ) -> BeatmapsetOsu:
     if type == "beatmapset" or type is None:
-        return await get_beatmapset_osu_parsed(requester, access_token, id)
+        return await get_beatmapset_osu_parsed(requester, user, id)
     elif type == "beatmap":
-        beatmap = await get_beatmap_osu_parsed(requester, access_token, id)
-        return await get_beatmapset_osu_parsed(
-            requester, access_token, beatmap.beatmapset_id
-        )
+        beatmap = await get_beatmap_osu_parsed(requester, user, id)
+        return await get_beatmapset_osu_parsed(requester, user, beatmap.beatmapset_id)
     else:
         raise HTTPException(
             status_code=400,
@@ -156,10 +161,10 @@ async def get_beatmapset(
 )
 async def get_user(
     user_id: int,
-    access_token: Annotated[str, Depends(get_access_token)],
+    user: Annotated[str, Depends(decode_user_token)],
     requester: Requester = Depends(Requester.get_instance),
 ) -> UserOsuExtended:
-    return await get_user_osu_parsed(requester, access_token, user_id)
+    return await get_user_osu_parsed(requester, user["access_token"], user_id)
 
 
 @router.get(
@@ -174,10 +179,10 @@ async def get_user(
 )
 async def search(
     query: str,
-    access_token: Annotated[str, Depends(get_access_token)],
+    user: Annotated[str, Depends(decode_user_token)],
     requester: Requester = Depends(Requester.get_instance),
 ) -> OsuSearchResponse:
-    return await search_user_osu_parsed(requester, access_token, query)
+    return await search_user_osu_parsed(requester, user["access_token"], query)
 
 
 @router.get(
@@ -191,12 +196,12 @@ async def search(
     key_builder=request_key_builder,
 )
 async def search_map(
-    access_token: Annotated[str, Depends(get_access_token)],
+    user: Annotated[str, Depends(decode_user_token)],
     request: Request,
     requester: Requester = Depends(Requester.get_instance),
 ) -> OsuSearchMapResponse:
     return await search_map_osu_parsed(
-        requester, access_token, str(request.query_params)
+        requester, user["access_token"], str(request.query_params)
     )
 
 

@@ -44,13 +44,14 @@ async def lifespan(app: FastAPI):
     FastAPICache.init(InMemoryBackend())
     # initialize instances with paths here. You can gp
     await ApiMultiRequester.get_instance(
-        osu_api.OsuUserMultiple, "https://osu.ppy.sh/api/v2/users"
+        osu_api.UserOsuMultiple, "https://osu.ppy.sh/api/v2/users"
     )
     await ApiMultiRequester.get_instance(
-        osu_api.BeatmapsetOsu, "https://osu.ppy.sh/api/v2/beatmapsets"
+        osu_api.BeatmapsetOsuMultiple,
+        "https://osu.ppy.sh/api/v2/beatmapsets/beatmapsets",
     )
     multi_requester = await ApiMultiRequester.get_instance(
-        osu_api.BeatmapOsu, "https://osu.ppy.sh/api/v2/beatmaps"
+        osu_api.BeatmapOsuMultiple, "https://osu.ppy.sh/api/v2/beatmaps"
     )
     yield
     close_mongo_client()

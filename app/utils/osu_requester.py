@@ -1,5 +1,4 @@
 import asyncio
-from functools import cache
 import logging
 import os
 from typing import Optional
@@ -79,6 +78,7 @@ class Requester:
 
         if self.test_path is None:
             text = await self.inner_request(method, url, headers, json)
+            print(text)
             return type.model_validate_json(text)
 
         os.makedirs(self.test_path, exist_ok=True)

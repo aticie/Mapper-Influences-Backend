@@ -1,7 +1,7 @@
 from datetime import timedelta, datetime
 from typing import Annotated, Optional
 
-from fastapi import Cookie
+from fastapi import Cookie, HTTPException
 from jose import jwt
 
 from app.config import settings
@@ -30,4 +30,8 @@ def decode_jwt(jwt_token: str):
 def decode_user_token(
     user_token: Annotated[str, Cookie()],
 ):
-    return decode_jwt(user_token)
+    try:
+        return decode_jwt(user_token)
+
+    except Exception as _:
+        raise HTTPException(status_code=401, detail="Invalid token")
