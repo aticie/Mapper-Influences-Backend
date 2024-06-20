@@ -4,6 +4,7 @@ from enum import Enum
 import logging
 from typing import Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi.websockets import WebSocketState
 from pydantic import BaseModel
 
 from app.db import Beatmap
@@ -27,7 +28,7 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.receive_text()
 
     except WebSocketDisconnect:
-        await activity_tracker.remove_connection(websocket)
+        activity_tracker.remove_connection(websocket)
         return
 
 
@@ -95,15 +96,22 @@ class ActivityWebsocket:
 
     async def add_connection(self, websocket: WebSocket):
         """Immidiately sends activities to new clients."""
-        self.connections.append(websocket)
         await websocket.send_json(self.activity_queue)
+        self.connections.append(websocket)
 
-    async def remove_connection(self, websocket: WebSocket):
+    def remove_connection(self, websocket: WebSocket):
         self.connections.remove(websocket)
 
     async def broadcast(self, activity):
+        connections_to_delete = []
         for connection in self.connections:
-            await connection.send_json(activity)
+            if connection.application_state == WebSocketState.CONNECTED:
+                await connection.send_json(activity)
+            else:
+                connections_to_delete.append(connection)
+
+        for connection in connections_to_delete:
+            self.connections.remove(connection)
 
     async def collect_acitivity(
         self, type: ActivityType, user_data: dict, details: ActivityDetails
