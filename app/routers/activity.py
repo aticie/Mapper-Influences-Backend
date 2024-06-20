@@ -105,22 +105,17 @@ class ActivityWebsocket:
 
     async def add_connection(self, websocket: WebSocket):
         """Immidiately sends activities to new clients."""
-        await websocket.send_json(self.activity_queue)
         self.connections.append(websocket)
+        if websocket.application_state == WebSocketState.CONNECTED:
+            await websocket.send_json(self.activity_queue)
 
     def remove_connection(self, websocket: WebSocket):
         self.connections.remove(websocket)
 
     async def broadcast(self, activity):
-        connections_to_delete = []
-        for connection in self.connections:
-            if connection.application_state == WebSocketState.CONNECTED:
-                await connection.send_json(activity)
-            else:
-                connections_to_delete.append(connection)
-
-        for connection in connections_to_delete:
-            self.connections.remove(connection)
+        for websocket in self.connections:
+            if websocket.application_state == WebSocketState.CONNECTED:
+                await websocket.send_json(activity)
 
     async def collect_acitivity(
         self, type: ActivityType, user_data: dict, details: ActivityDetails
