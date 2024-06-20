@@ -44,7 +44,8 @@ class ActivityType(Enum):
 
 class ActivityGroup(Enum):
     BEATMAP = "BEATMAP"
-    INFLUENCE = "INFLUENCE"
+    INFLUENCE_ADD = "INFLUENCE_ADD"
+    INFLUENCE_REMOVE = "INFLUENCE_REMOVE"
     BIO = "BIO"
 
 
@@ -52,8 +53,8 @@ activity_type_group_map = {
     "EDIT_BIO": ActivityGroup.BIO,
     "ADD_BEATMAP": ActivityGroup.BEATMAP,
     "REMOVE_BEATMAP": ActivityGroup.BEATMAP,
-    "ADD_INFLUENCE": ActivityGroup.INFLUENCE,
-    "REMOVE_INFLUENCE": ActivityGroup.INFLUENCE,
+    "ADD_INFLUENCE": ActivityGroup.INFLUENCE_ADD,
+    "REMOVE_INFLUENCE": ActivityGroup.INFLUENCE_REMOVE,
 }
 
 
@@ -139,7 +140,7 @@ class ActivityWebsocket:
                     case ActivityGroup.BEATMAP:
                         if activity["details"]["beatmap"]["id"] == details.beatmap.id:
                             return
-                    case ActivityGroup.INFLUENCE:
+                    case ActivityGroup.INFLUENCE_ADD | ActivityGroup.INFLUENCE_REMOVE:
                         if (
                             activity["details"]["influenced_to"]["id"]
                             == details.influenced_to.id
