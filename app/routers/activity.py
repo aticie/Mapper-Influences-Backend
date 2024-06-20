@@ -6,8 +6,10 @@ from typing import Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
 from pydantic import BaseModel
+from copy import deepcopy
 
 from app.db import Beatmap
+from app.db.instance import get_mongo_db
 
 
 logger = logging.getLogger(__name__)
@@ -87,8 +89,14 @@ class ActivityWebsocket:
                 if cls._instance is None:  # Double-check locking
                     cls._instance = ActivityWebsocket()
                     cls._instance.connections = []
-                    cls._instance.activity_queue = []
                     cls._instance.queue_size = 20
+                    cls._instance.activity_queue = []
+
+                    mongo_db = get_mongo_db()
+                    db_activities = await mongo_db.get_latest_activities()
+                    db_activities.reverse()
+                    cls._instance.activity_queue = db_activities
+
         return cls._instance
 
     def clear_queue(self):
@@ -143,7 +151,13 @@ class ActivityWebsocket:
             type=type, user=user, datetime=datetime.datetime.now(), details=details
         )
         activity = activity.model_dump(mode="json")
+
         self.activity_queue.append(activity)
         if len(self.activity_queue) > self.queue_size:
             self.activity_queue.pop(0)
         await self.broadcast(activity)
+
+        mongo_db = get_mongo_db()
+        # pymongo functions edis in place
+        # That means all the activity objects in activity queue magically have _id field unless we deepcopy
+        await mongo_db.save_activity(deepcopy(activity))

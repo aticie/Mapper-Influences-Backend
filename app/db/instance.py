@@ -1,4 +1,5 @@
 from typing import Optional
+from app.db.activity import ActivityMongoClient
 from app.db.influence import InfluenceMongoClient
 from app.db.leaderboard import LeaderboardMongoClient
 from app.db.real_user import RealUserMongoClient
@@ -6,7 +7,11 @@ from app.db.user import UserMongoClient
 
 
 class AsyncMongoClient(
-    UserMongoClient, InfluenceMongoClient, LeaderboardMongoClient, RealUserMongoClient
+    UserMongoClient,
+    InfluenceMongoClient,
+    LeaderboardMongoClient,
+    RealUserMongoClient,
+    ActivityMongoClient,
 ):
     pass
 

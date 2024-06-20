@@ -41,3 +41,4 @@ class BaseAsyncMongoClient(AsyncIOMotorClient):
         self.users_collection = self.main_db.get_collection("Users")
         self.influences_collection = self.main_db.get_collection("Influences")
         self.real_users_collection = self.main_db.get_collection("RealUsers")
+        self.activity_collection = self.main_db.get_collection("Activity")
