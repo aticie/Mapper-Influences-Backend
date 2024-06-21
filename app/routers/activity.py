@@ -3,7 +3,7 @@ import datetime
 from enum import Enum
 import logging
 from typing import Optional
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
 from pydantic import BaseModel
 from copy import deepcopy
@@ -14,24 +14,7 @@ from app.db.instance import get_mongo_db
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/ws", tags=["websocket"])
-
-
-@router.websocket("")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-
-    activity_tracker = await ActivityWebsocket.get_instance()
-    await activity_tracker.add_connection(websocket)
-
-    try:
-        # I guess we need this to track disconnects
-        while True:
-            await websocket.receive_text()
-
-    except WebSocketDisconnect:
-        activity_tracker.remove_connection(websocket)
-        return
+websocket_router = APIRouter(prefix="/ws", tags=["websocket"])
 
 
 class ActivityType(Enum):
@@ -76,6 +59,23 @@ class Activity(BaseModel):
     user: ActivityUser
     datetime: datetime.datetime
     details: ActivityDetails
+
+
+@websocket_router.websocket("")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+
+    activity_tracker = await ActivityWebsocket.get_instance()
+    await activity_tracker.add_connection(websocket)
+
+    try:
+        # I guess we need this to track disconnects
+        while True:
+            await websocket.receive_text()
+
+    except WebSocketDisconnect:
+        activity_tracker.remove_connection(websocket)
+        return
 
 
 class ActivityWebsocket:
@@ -156,3 +156,13 @@ class ActivityWebsocket:
         # pymongo functions edis in place
         # That means all the activity objects in activity queue magically have _id field unless we deepcopy
         await mongo_db.save_activity(deepcopy(activity))
+
+
+http_router = APIRouter(prefix="/activity", tags=["activity"])
+
+
+@http_router.get("", response_model=list[Activity])
+async def activity(
+    activity_tracker: ActivityWebsocket = Depends(ActivityWebsocket.get_instance),
+):
+    return activity_tracker.activity_queue

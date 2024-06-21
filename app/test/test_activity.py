@@ -81,8 +81,7 @@ async def test_activity_websocket(test_client, mongo_db, headers, test_user_id):
         assert_add_beatmap(response[3], {"id": 131891, "is_beatmapset": False})
 
         # Clear activity to get fresh data. Activity won't be added to queue if the user and activities are the same.
-        ws_manager = await ActivityWebsocket.get_instance()
-        ws_manager.clear_queue()
+        websocket_manager.clear_queue()
 
         # Spontaneous activity
         response = await test_client.post(
@@ -113,3 +112,27 @@ async def test_activity_websocket(test_client, mongo_db, headers, test_user_id):
         assert response.status_code == 200
         response = await ws.receive_json()
         assert_edit_bio(response, "test2")
+
+
+@pytest.mark.asyncio
+async def test_activity_endpoint(test_client, mongo_db, headers, test_user_id):
+    websocket_manager = await ActivityWebsocket.get_instance()
+    websocket_manager.clear_queue()
+
+    influence_body = {
+        "beatmaps": [],
+        "influenced_to": 418699,
+        "type": 1,
+        "description": "hi",
+    }
+    response = await test_client.post("influence", json=influence_body, headers=headers)
+    assert response.status_code == 200
+    response = await test_client.delete("influence/418699", headers=headers)
+    assert response.status_code == 200
+
+    response = await test_client.get("activity")
+    assert response.status_code == 200
+    response = response.json()
+    assert len(response) == 2
+    assert_add_influence(response[0], 418699)
+    assert_remove_influence(response[1], 418699)
