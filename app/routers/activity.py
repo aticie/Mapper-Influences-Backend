@@ -94,7 +94,7 @@ class ActivityWebsocket:
                     cls._instance.activity_queue = []
 
                     mongo_db = get_mongo_db()
-                    db_activities = await mongo_db.get_latest_activities()
+                    db_activities = await mongo_db.get_latest_activities(50)
                     db_activities.reverse()
                     cls._instance.activity_queue = db_activities
 
