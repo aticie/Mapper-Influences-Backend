@@ -11,11 +11,11 @@ class ActivityMongoClient(BaseAsyncMongoClient):
         )
         await self.activity_collection.insert_one(activity)
 
-    async def get_latest_activities(self):
+    async def get_latest_activities(self, length):
         data = (
             await self.activity_collection.find({}, {"_id": 0})
             .sort("_id", -1)
-            .limit(20)
-            .to_list(length=20)
+            .limit(length)
+            .to_list(length=length)
         )
         return data
