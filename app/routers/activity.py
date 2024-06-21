@@ -90,7 +90,7 @@ class ActivityWebsocket:
                 if cls._instance is None:  # Double-check locking
                     cls._instance = ActivityWebsocket()
                     cls._instance.connections = []
-                    cls._instance.queue_size = 20
+                    cls._instance.queue_size = 50
                     cls._instance.activity_queue = []
 
                     mongo_db = get_mongo_db()
@@ -133,8 +133,7 @@ class ActivityWebsocket:
                     case ActivityGroup.BIO:
                         return
                     case ActivityGroup.BEATMAP:
-                        if activity["details"]["beatmap"]["id"] == details.beatmap.id:
-                            return
+                        return
                     case ActivityGroup.INFLUENCE_ADD | ActivityGroup.INFLUENCE_REMOVE:
                         if (
                             activity["details"]["influenced_to"]["id"]
