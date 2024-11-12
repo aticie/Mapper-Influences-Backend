@@ -9,6 +9,7 @@ from app.db.instance import get_mongo_db, AsyncMongoClient
 from app.routers.osu_api import UserOsu
 from app.utils.jwt import obtain_jwt
 from app.utils.osu_requester import Requester
+import tracemalloc
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,16 @@ async def osu_oauth2_redirect(
 async def logout(response: Response):
     response.delete_cookie("user_token")
     return
+
+
+@router.get("/test", summary="Logs out the user. (basically removes the cookie)")
+async def test(response: Response):
+    data = {"memory": tracemalloc.get_traced_memory()}
+    snapshot = tracemalloc.take_snapshot()
+    top_stats = snapshot.statistics("lineno")
+    for idx, stat in enumerate(top_stats[:10]):
+        data[idx] = str(stat)
+    return data
 
 
 async def get_osu_user(requester, access_token: str):

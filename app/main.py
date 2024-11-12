@@ -7,6 +7,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
 import sentry_sdk
+import tracemalloc
 
 
 from app.db.instance import close_mongo_client, start_mongo_client
@@ -24,7 +25,7 @@ from app.utils.osu_requester import Requester
 
 logger = logging.getLogger(__name__)
 
-
+tracemalloc.start()
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,
     # Set traces_sample_rate to 1.0 to capture 100%
