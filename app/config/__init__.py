@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 
 class DatabaseSettings(BaseSettings):
     MONGO_URL: str
+    REDIS_URL: str
 
 
 class APISettings(BaseSettings):

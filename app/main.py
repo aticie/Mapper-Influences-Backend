@@ -4,7 +4,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
-from fastapi_cache.backends.inmemory import InMemoryBackend
+from fastapi_cache.backends.redis import RedisBackend
+from redis import asyncio as aioredis
 import sentry_sdk
 
 
@@ -40,7 +41,8 @@ sentry_sdk.init(
 async def lifespan(app: FastAPI):
     requester = await Requester.get_instance()
     start_mongo_client(settings.MONGO_URL)
-    FastAPICache.init(InMemoryBackend())
+    redis = aioredis.from_url(settings.REDIS_URL)
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
     yield
     close_mongo_client()
     await requester.close()
