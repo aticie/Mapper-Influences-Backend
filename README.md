@@ -8,7 +8,9 @@
 </p>
 
 ---
+# THIS REPOSITORY IS NO LONGER MAINTAINED. PLEASE GO TO https://github.com/112batuhan/mapper-influences-backend-rs
 
+yes I did rewrite it in rust. I became the meme
 
 Mapper influences backend code.
 
